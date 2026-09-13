@@ -21,7 +21,7 @@
         <div class="start-screen" id="startScreen">
           <p class="small-title">途中で止まった世界を、少しずつ完成させよう。</p>
           <h1>BETA</h1>
-          <p>← → / A D：移動　　Space：ジャンプ　　Z：攻撃　　E：修復</p>
+          <p>← → / A D：移動　　Shift：ダッシュ　　Space：ジャンプ　　Z：攻撃　　E：修復</p>
           <button id="startButton">はじめる</button>
         </div>
         <section class="developer-panel" id="developerPanel" hidden aria-label="開発者パネル">
@@ -122,6 +122,7 @@
                   <div><span>左へ移動</span><button class="key-bind" data-action="left" id="key-left">←</button></div>
                   <div><span>右へ移動</span><button class="key-bind" data-action="right" id="key-right">→</button></div>
                   <div><span>ジャンプ</span><button class="key-bind" data-action="jump" id="key-jump">Space</button></div>
+                  <div><span>地上ダッシュ</span><button class="key-bind" data-action="dash" id="key-dash">Shift</button></div>
                   <div><span>攻撃</span><button class="key-bind" data-action="attack" id="key-attack">Z</button></div>
                   <div><span>修復</span><button class="key-bind" data-action="repair" id="key-repair">E</button></div>
                   <div><span>メニュー</span><button class="key-bind" data-action="menu" id="key-menu">Esc</button></div>
@@ -143,6 +144,6 @@
     </main>
     <script src="config.js?v=8"></script>
     <script src="stage-layouts.js?v=1"></script>
-    <script src="game.js?v=32"></script>
+    <script src="game.js?v=33"></script>
   </body>
 </html>
