@@ -21,6 +21,16 @@ const FEATURES = Object.freeze({
   debug: false,
   developerTools: true,
   abilitySystem: true,
+  orbMagnet: true,
+  comboMeter: true,
+  speedStreaks: true,
+  landingDust: true,
+  orbPulse: true,
+  orbCompass: true,
+  checkpointAura: true,
+  enemyEyes: true,
+  stageBanner: true,
+  courseTips: true,
 });
 
 const GAME_CONFIG = Object.freeze({
