@@ -13,7 +13,7 @@
         <div class="hud" id="hud">
           <div><div class="brand"><span class="brand-mark">◇</span><span>BETA</span></div><small class="chapter-label">ACT I　CHAPTER 1 / 20<br /><span id="segmentLabel">STAGE 1 / 13　はじまりの足場島 ― スプリント航路</span></small></div>
           <div class="shard-count" id="shardCount" aria-label="欠片">◇◇◇</div>
-          <div class="completion"><span>世界の完成度　 <strong id="runTimer">00:00.00</strong></span><strong id="completionValue">0%</strong><i><b id="completionBar"></b></i></div>
+          <div class="completion"><span>TIME　 <strong id="runTimer">00:00.00</strong></span><strong id="completionValue">0%</strong><i><b id="completionBar"></b></i></div>
         </div>
         <div class="complete-gauge" id="completeGauge"><span>BETA</span><i><b id="completeBar"></b></i><strong>COMPLETE</strong></div>
         <div class="autosave-indicator" id="autosaveIndicator" hidden role="status" aria-live="polite"><i></i><span>AUTOSAVE</span></div>
@@ -68,15 +68,21 @@
         </section>
         <section class="stage-clear" id="stageClear" hidden aria-label="ステージクリア">
           <div class="clear-window" role="dialog" aria-modal="true" aria-labelledby="clearTitle">
-            <p>ACT I ・ STAGE 1 / 13</p>
+            <p id="clearStage">ACT I ・ STAGE 1 / 13</p>
             <h2 id="clearTitle">STAGE CLEAR</h2>
             <div class="clear-stats">
               <span>クリアタイム <strong id="clearTime">00:00.00</strong></span>
               <span>回収した欠片 <strong id="clearShards">0 / 14</strong></span>
               <span>修復した足場 <strong id="clearRepairs">0 / 2</strong></span>
+              <span>倒した敵 <strong id="clearEnemies">0</strong></span>
+              <span>更新したチェックポイント <strong id="clearCheckpoints">0</strong></span>
+              <span>ジャンプ <strong id="clearJumps">0</strong></span>
+              <span>Air Dash <strong id="clearDashes">0</strong></span>
+              <span>攻撃 <strong id="clearAttacks">0</strong></span>
             </div>
-            <p class="clear-message">浮島航路を渡り切った。次の島が、雲の向こうで待っている。</p>
+            <p class="clear-message" id="clearMessage">浮島航路を渡り切った。次の島が、雲の向こうで待っている。</p>
             <button class="menu-action primary" id="retryStage">もう一度挑戦</button>
+            <button class="menu-action" id="resultCourseSelect">コース選択へ</button>
             <button class="menu-action" id="returnToTitle">タイトルへ戻る</button>
           </div>
         </section>
@@ -137,6 +143,6 @@
     </main>
     <script src="config.js?v=8"></script>
     <script src="stage-layouts.js?v=1"></script>
-    <script src="game.js?v=31"></script>
+    <script src="game.js?v=32"></script>
   </body>
 </html>
