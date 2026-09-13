@@ -4,6 +4,7 @@
 body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: radial-gradient(circle at 50% 0%, #172858, #060b19 65%); }
 .game-shell { width: min(1280px, 100%); }
 .game-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid #4062a0; box-shadow: 0 26px 85px #000b, inset 0 0 0 4px #0b1734; background: #0c1730; }
+.game-frame button:focus-visible { outline:2px solid #fff29b; outline-offset:3px; box-shadow:0 0 0 4px #fff19a55,0 0 18px #ffe76099; }
 .game-frame::before,.game-frame::after { content:''; position:absolute; z-index:9; left:0; right:0; pointer-events:none; background:#000; opacity:0; transition:opacity .16s ease; }
 .game-frame::before { top:0; height:18%; }.game-frame::after { bottom:0; height:11%; }
 .game-frame.is-dialogue::before,.game-frame.is-dialogue::after { opacity:1; }

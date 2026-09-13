@@ -335,6 +335,40 @@
   function setControlGuide(open) { world.controlGuide=Boolean(open) && world.started && !world.menuOpen && !world.stageClear && !world.courseSelect; $('#controlGuide').hidden=!world.controlGuide; $('#controlGuidePrompt').setAttribute('aria-expanded',String(world.controlGuide)); if(world.controlGuide) renderControlGuide(); }
   $('#controlGuidePrompt').onclick=()=>setControlGuide(!world.controlGuide);
   function renderBindings() { document.querySelectorAll('.key-bind').forEach((button) => { button.textContent=keyLabel(bindings[button.dataset.action]); button.classList.toggle('is-listening',button.dataset.action===bindingAction); }); $('.pause-window header span').textContent=`${keyLabel(bindings.menu)}で戻る`; renderControlGuide(); }
+  // ゲーム中は矢印を移動に残し、画面内に選択肢があるときだけ空間的なキーボード移動へ切り替える。
+  function navigationRoot() {
+    if (world.courseSelect) return $('#courseSelect');
+    if (world.stageClear) return $('#stageClear');
+    if (world.menuOpen) return $('#pauseMenu');
+    if (world.developerOpen) return $('#developerPanel');
+    if (!world.started && !$('#startScreen').hidden) return $('#startScreen');
+    return null;
+  }
+  function moveUiFocus(key) {
+    const root=navigationRoot();
+    // 数値入力・セレクト上の矢印は、従来どおり値の変更に使う。
+    if (!root || document.activeElement?.matches('input,select,textarea')) return false;
+    const choices=[...root.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled])')]
+      .filter(element=>element.getClientRects().length && !element.closest('[hidden]'));
+    if (!choices.length) return false;
+    const current=choices.includes(document.activeElement) ? document.activeElement : choices[0];
+    if (current !== document.activeElement) { current.focus({preventScroll:true}); return true; }
+    const base=current.getBoundingClientRect(); const center={x:base.left+base.width/2,y:base.top+base.height/2};
+    const directional=choices.filter(choice=> {
+      if (choice===current) return false;
+      const rect=choice.getBoundingClientRect(), dx=rect.left+rect.width/2-center.x, dy=rect.top+rect.height/2-center.y;
+      return key==='ArrowLeft' ? dx < -2 : key==='ArrowRight' ? dx > 2 : key==='ArrowUp' ? dy < -2 : dy > 2;
+    });
+    if (!directional.length) return true;
+    directional.sort((a,b)=> {
+      const ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
+      const adx=ra.left+ra.width/2-center.x, ady=ra.top+ra.height/2-center.y, bdx=rb.left+rb.width/2-center.x, bdy=rb.top+rb.height/2-center.y;
+      const ascore=(key==='ArrowLeft'||key==='ArrowRight' ? Math.abs(adx)+Math.abs(ady)*.42 : Math.abs(ady)+Math.abs(adx)*.42);
+      const bscore=(key==='ArrowLeft'||key==='ArrowRight' ? Math.abs(bdx)+Math.abs(bdy)*.42 : Math.abs(bdy)+Math.abs(bdx)*.42);
+      return ascore-bscore;
+    });
+    directional[0].focus({preventScroll:true}); return true;
+  }
   function beginBinding(action) { bindingAction=action; keys.clear(); $('#keyConfigHint').textContent=`「${document.querySelector(`[data-action="${action}"]`).parentElement.firstElementChild.textContent}」に割り当てるキーを押してください。Escでキャンセル`; renderBindings(); }
   document.querySelectorAll('.key-bind').forEach((button) => button.onclick = () => beginBinding(button.dataset.action));
   $('#resetKeys').onclick = () => { Object.assign(bindings,defaultBindings); bindingAction=null; keys.clear(); $('#keyConfigHint').textContent='初期キーに戻しました。'; renderBindings(); persistSettings(); };
@@ -388,6 +422,7 @@
       }
       return;
     }
+    if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code) && moveUiFocus(e.code)) { e.preventDefault(); return; }
     if (e.code === 'KeyH' && world.started && !world.menuOpen && !world.courseSelect && !world.stageClear) { e.preventDefault(); setControlGuide(!world.controlGuide); return; }
     if (world.controlGuide && e.code === 'Escape') { e.preventDefault(); setControlGuide(false); return; }
     if (e.code === 'F2' && FEATURES.developerTools) { e.preventDefault(); setDeveloper(!world.developerOpen); return; }
