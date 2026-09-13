@@ -62,6 +62,7 @@
   const tuning = { gravity:GAME_CONFIG.gravity, playerSpeed:GAME_CONFIG.playerSpeed, jumpVelocity:GAME_CONFIG.jumpVelocity };
   // 実装を追加するときは abilities に機能名を足すだけで、開発・セーブ画面から扱える土台になる。
   const abilities = FEATURES.abilitySystem ? { airDash:false, doubleJump:false, glide:false } : {};
+  const AIR_DASH_MAX_LEVEL = 5;
   const abilityLevels = { airDash: 1 };
   const images = { background: new Image(), terrain: new Image(), orb: new Image(), sprites: new Image(), walk: new Image(), enemy: new Image(), attack: new Image(), pieceSlime: new Image() };
   images.background.src = 'assets/castle-under-construction-background.png';
@@ -165,12 +166,13 @@
       (data.clearedCourses === undefined || Number.isInteger(data.clearedCourses) && inRange(data.clearedCourses, 0, 13)) &&
       Number.isInteger(data.checkpointIndex) && inRange(data.checkpointIndex, 0, 4) &&
       flags(data.shards, 14) && Array.isArray(data.repairs) && data.repairs.every(x => typeof x === 'boolean') && flags(data.enemies, enemies.length) &&
-      isRecord(data.abilities) && ['dash','doubleJump','glide'].every(key => data.abilities[key] === undefined || typeof data.abilities[key] === 'boolean');
+      isRecord(data.abilities) && ['dash','doubleJump','glide'].every(key => data.abilities[key] === undefined || typeof data.abilities[key] === 'boolean') &&
+      (data.abilityLevels === undefined || isRecord(data.abilityLevels) && Number.isInteger(data.abilityLevels.airDash) && inRange(data.abilityLevels.airDash,1,AIR_DASH_MAX_LEVEL));
   }
   function snapshot() {
     return { version:1, stage:1, savedAt:Date.now(), player:{ x:player.x, y:player.y, facing:player.facing },
       time:world.time, complete:world.complete, course:world.currentCourse, clearedCourses:world.clearedCourses, checkpointIndex:world.checkpointIndex,
-      shards:shards.map(s=>s.taken), repairs:repairPoints.map(p=>p.repaired), enemies:enemies.map(e=>e.alive), abilities:{ ...abilities } };
+      shards:shards.map(s=>s.taken), repairs:repairPoints.map(p=>p.repaired), enemies:enemies.map(e=>e.alive), abilities:{ ...abilities }, abilityLevels:{ ...abilityLevels } };
   }
   function loadSave(data, slotIndex=null, { pause=false }={}) {
     // Validate the entire record before mutating gameplay, and discard transient input/animation state.
@@ -189,6 +191,7 @@
     });
     enemies.forEach((enemy,index)=>enemy.alive=data.enemies[index]);
     Object.keys(abilities).forEach(key=>abilities[key]=data.abilities[key] === true);
+    abilityLevels.airDash=Math.max(1,Math.min(AIR_DASH_MAX_LEVEL,data.abilityLevels?.airDash ?? 1));
     world.clearedCourses=data.clearedCourses ?? 0; world.completed=shards.filter(s=>s.taken).length; world.repaired=repairPoints.filter(p=>p.repaired).length;
     world.camera=Math.max(0,player.x-260); world.backgroundOffset=Math.min(380,player.x*.04);
     $('#completeBar').style.width=`${world.complete}%`; updateHud();
@@ -303,7 +306,7 @@
     $('#devOrbs').max=shards.length;
     $('#devOrbs').value=world.completed;
   }
-  function setDeveloper(open) { if (!FEATURES.developerTools) return; world.developerOpen=open; $('#developerPanel').hidden=!open; if(open) { $('#devX').value=Math.round(player.x); $('#devY').value=Math.round(player.y); syncDevOrbControl(); $('#devSpeed').focus(); } }
+  function setDeveloper(open) { if (!FEATURES.developerTools) return; world.developerOpen=open; $('#developerPanel').hidden=!open; if(open) { $('#devX').value=Math.round(player.x); $('#devY').value=Math.round(player.y); $('#devAirDash').value=abilityLevels.airDash; syncDevOrbControl(); $('#devSpeed').focus(); } }
   function renderCourseMap() {
     document.querySelectorAll('.course-route path').forEach((path) => path.classList.toggle('is-visible',Number(path.dataset.step)<=world.clearedCourses));
     document.querySelectorAll('.course-node').forEach((node) => {
@@ -371,6 +374,7 @@
       $('#completeBar').style.width=`${world.complete}%`;
       updateHud(); syncDevOrbControl();
     };
+    $('#devAirDash').oninput=(event) => { abilityLevels.airDash=Math.max(1,Math.min(AIR_DASH_MAX_LEVEL,Math.floor(Number(event.target.value)||1))); event.target.value=abilityLevels.airDash; };
     $('#devFloat').onclick=() => { world.floating=!world.floating; player.vy=0; $('#devFloat').textContent=`浮遊：${world.floating?'ON':'OFF'}`; };
     $('#closeDeveloper').onclick=() => setDeveloper(false);
   }
@@ -441,21 +445,27 @@
     // 地上攻撃中は通常どおり移動入力を受け付ける。
     const wasAirborne=!player.grounded;
     const airAttacking = player.attack > 0 && !player.grounded;
+    const airDashing = player.airDash > 0;
     const dir = (input('right')?1:0)-(input('left')?1:0);
     if (world.floating) {
       const vertical=(keys.has('KeyS')?1:0)-(keys.has('KeyW')?1:0);
       player.vx=dir*tuning.playerSpeed; player.vy=vertical*tuning.playerSpeed; player.grounded=false;
       if(dir)player.facing=dir;
-    } else if (!airAttacking) {
+    } else if (!airAttacking && !airDashing) {
       player.vx = dir * tuning.playerSpeed;
       if (dir) player.facing = dir;
       if (dir && player.grounded) player.walkClock += dt * 13;
-    } else {
+    } else if (airAttacking) {
       // 空中攻撃中は入力を受けず、攻撃開始時の移動速度だけが慣性として緩やかに減衰する。
       player.vx *= Math.pow(0.06, dt);
     }
     if (!world.floating && input('jump') && player.grounded) { player.vy=-tuning.jumpVelocity; player.grounded=false; keys.delete(bindings.jump); keys.delete('jump'); }
-    if (abilities.airDash && !player.grounded && player.airDashAvailable && keys.has('KeyX')) { player.airDashAvailable=false; player.airDash=.18; player.vx=player.facing*(650+abilityLevels.airDash*150); player.vy=-35; keys.delete('KeyX'); if(FEATURES.particles) for(let i=0;i<16;i++)world.particles.push({x:player.x+player.w/2,y:player.y+34,vx:-player.facing*(70+Math.random()*180),vy:(Math.random()-.5)*140,life:.35,color:'#ffe45a'}); }
+    if (abilities.airDash && !player.grounded && player.airDashAvailable && keys.has('KeyX')) {
+      // Lv1=主人公1人分、以後は0.5人分ずつ増加し、Lv5で最大3人分まで届く。
+      const distance=player.w*(1+(abilityLevels.airDash-1)*.5);
+      player.airDashAvailable=false; player.airDash=.18; player.vx=player.facing*distance/.18; player.vy=-35;
+      keys.delete('KeyX'); if(FEATURES.particles) for(let i=0;i<16;i++)world.particles.push({x:player.x+player.w/2,y:player.y+34,vx:-player.facing*(70+Math.random()*180),vy:(Math.random()-.5)*140,life:.35,color:'#ffe45a'});
+    }
     if (input('attack') && player.attackCooldown <= 0) { strike(); keys.delete(bindings.attack); keys.delete('attack'); }
     // 最初の島だけ、未完成の足場に気づく導入会話を表示する。
     const nearbyRepair=world.currentCourse===1 && repairPoints.find(point=>!point.repaired && !point.promptShown && Math.abs((player.x+player.w/2)-point.x)<80 && Math.abs((player.y+player.h)-point.y)<100);
