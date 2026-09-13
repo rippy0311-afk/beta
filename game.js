@@ -77,7 +77,7 @@
   images.attack.src = 'assets/ren-attack-cycle.png';
   images.pieceSlime.src = 'assets/piece-and-half-slime.png';
 
-  const world = { camera: 0, backgroundOffset: 0, started: !FEATURES.titleScreen, completed: 0, complete: 0, messageShown: false, particles: [], gateExit:0, gateExitParticles:[], menuOpen: false, developerOpen: false, courseSelect: false, clearedCourses: 0, currentCourse: 1, floating: false, stageClear: false, gateHintShown: false, guideSeen: false, repaired: 0, time: 0, checkpointIndex: 0, dialogueOpen: false, toastTimer: null, toastCountdownTimer: null, toastEndsAt: 0, autoSaveTimer: null, combo: 0, comboTimer: 0, stageBanner: 0, stageTipShown: false, stats:{orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0} };
+  const world = { camera: 0, backgroundOffset: 0, started: !FEATURES.titleScreen, completed: 0, complete: 0, messageShown: false, particles: [], gateExit:0, gateExitParticles:[], menuOpen: false, controlGuide:false, developerOpen: false, courseSelect: false, clearedCourses: 0, currentCourse: 1, floating: false, stageClear: false, gateHintShown: false, guideSeen: false, repaired: 0, time: 0, checkpointIndex: 0, dialogueOpen: false, toastTimer: null, toastCountdownTimer: null, toastEndsAt: 0, autoSaveTimer: null, combo: 0, comboTimer: 0, stageBanner: 0, stageTipShown: false, stats:{orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0} };
   const player = { x: 110, y: 450, w: 46, h: 74, vx: 0, vy: 0, grounded: false, facing: 1, walkClock: 0, groundDash: 0, dashCooldown: 0, invulnerable: 0, attack: 0, attackCooldown: 0, airDashAvailable: false, airDash: 0 };
   // 速度を維持しながら渡る、長い浮島スプリント航路。着地点と次の目印を常に画面内に置く。
   const platforms = [
@@ -283,7 +283,7 @@
   closeDialogue();
   $('#closeDialogue').onclick = closeDialogue;
   $('#startButton').onclick = () => { world.started = true; $('#startScreen').hidden = true; showDialogue(GAME_CONFIG.initialDialogue); };
-  function setMenu(open) { if (!world.started || (open && world.stageClear)) return; world.menuOpen = open; $('#pauseMenu').hidden = !open; if (open) $('#resumeGame').focus(); }
+  function setMenu(open) { if (!world.started || (open && world.stageClear)) return; world.menuOpen = open; if (open) setControlGuide(false); $('#pauseMenu').hidden = !open; if (open) $('#resumeGame').focus(); }
   function syncDevOrbControl() {
     if (!FEATURES.developerTools) return;
     $('#devOrbs').max=shards.length;
@@ -297,10 +297,10 @@
       node.classList.toggle('cleared',cleared); node.classList.toggle('available',available); node.classList.toggle('locked',!cleared&&!available); node.disabled=!cleared&&!available;
     });
   }
-  function showCourseSelect(message='次の行き先を選んでください。') { setDeveloper(false); world.courseSelect=true; world.menuOpen=false; $('#pauseMenu').hidden=true; closeDialogue(); $('#courseSelect').hidden=false; renderCourseMap(); $('#courseMessage').textContent=message; }
+  function showCourseSelect(message='次の行き先を選んでください。') { setDeveloper(false); setControlGuide(false); world.courseSelect=true; world.menuOpen=false; $('#pauseMenu').hidden=true; closeDialogue(); $('#courseSelect').hidden=false; renderCourseMap(); $('#courseMessage').textContent=message; }
   function openCourseSelect() { world.clearedCourses=Math.max(world.clearedCourses,world.currentCourse); persistWorldProgress(); showCourseSelect(world.currentCourse===13?'CHAPTER 1 COMPLETE！ アルケアの航路がひとつ完成した。':'次の行き先を選んでください。'); }
   function closeCourseSelect() { world.courseSelect=false; $('#courseSelect').hidden=true; }
-  function resetGame() { world.camera=0; world.backgroundOffset=0; world.time=0; world.checkpointIndex=0; world.completed=0; world.complete=0; world.repaired=0; world.combo=0; world.comboTimer=0; world.stats={orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0}; world.stageTipShown=false; world.messageShown=false; world.gateHintShown=false; world.guideSeen=false; world.particles=[]; world.gateExit=0; world.gateExitParticles=[]; world.stageClear=false; world.courseSelect=false; world.floating=false; $('#devFloat').textContent='浮遊：OFF'; $('#stageClear').hidden=true; $('#courseSelect').hidden=true; const start=checkpoints[0],startPlatform=platforms.find(p=>p.id===start.platformId); player.x=start.x; player.y=(startPlatform?.y||520)-20-player.h; player.vx=0; player.vy=0; player.attack=0; player.attackCooldown=0; player.groundDash=0; player.dashCooldown=0; player.airDash=0; player.airDashAvailable=abilities.airDash; player.invulnerable=0; shards.forEach(s=>s.taken=false); repairPoints.forEach(p=>{p.repaired=false;p.promptShown=false;}); platforms.forEach(p=>p.active=p.defaultActive ?? !['bridge-a','bridge-b'].includes(p.id)); checkpoints.forEach((p,i)=>p.active=i===0); enemies.forEach(e=>e.alive=true); $('#completeBar').style.width='0%'; updateHud(); $('#runTimer').textContent='00:00.00'; setMenu(false); showDialogue(abilities.airDash?'ピース「Air Dashが使えるよ！ 空中で X を押して、向いている方向へ飛ぼう。」':GAME_CONFIG.initialDialogue); }
+  function resetGame() { world.camera=0; world.backgroundOffset=0; world.time=0; world.checkpointIndex=0; world.completed=0; world.complete=0; world.repaired=0; world.combo=0; world.comboTimer=0; world.stats={orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0}; world.stageTipShown=false; world.messageShown=false; world.gateHintShown=false; world.guideSeen=false; world.particles=[]; world.gateExit=0; world.gateExitParticles=[]; world.stageClear=false; world.courseSelect=false; world.floating=false; setControlGuide(false); $('#devFloat').textContent='浮遊：OFF'; $('#stageClear').hidden=true; $('#courseSelect').hidden=true; const start=checkpoints[0],startPlatform=platforms.find(p=>p.id===start.platformId); player.x=start.x; player.y=(startPlatform?.y||520)-20-player.h; player.vx=0; player.vy=0; player.attack=0; player.attackCooldown=0; player.groundDash=0; player.dashCooldown=0; player.airDash=0; player.airDashAvailable=abilities.airDash; player.invulnerable=0; shards.forEach(s=>s.taken=false); repairPoints.forEach(p=>{p.repaired=false;p.promptShown=false;}); platforms.forEach(p=>p.active=p.defaultActive ?? !['bridge-a','bridge-b'].includes(p.id)); checkpoints.forEach((p,i)=>p.active=i===0); enemies.forEach(e=>e.alive=true); $('#completeBar').style.width='0%'; updateHud(); $('#runTimer').textContent='00:00.00'; setMenu(false); showDialogue(abilities.airDash?'ピース「Air Dashが使えるよ！ 空中で X を押して、向いている方向へ飛ぼう。」':GAME_CONFIG.initialDialogue); }
   $('#resumeGame').onclick = () => setMenu(false); $('#restartGame').onclick = resetGame;
   $('#exitStage').onclick = () => {
     // 退出は現在のステージ用オートセーブだけを削除し、解放済みコースの記録は残す。
@@ -325,7 +325,16 @@
   restoreSettings();
   $('#volumeControl').oninput = (e) => { $('#volumeValue').textContent = `${e.target.value}%`; persistSettings(); };
   const keyLabel = (code) => ({ ArrowLeft:'←', ArrowRight:'→', ArrowUp:'↑', ArrowDown:'↓', Space:'Space', Escape:'Esc', Enter:'Enter', ShiftLeft:'Shift', ShiftRight:'Shift', ControlLeft:'Ctrl', ControlRight:'Ctrl', AltLeft:'Alt', AltRight:'Alt' }[code] || code.replace(/^Key/, '').replace(/^Digit/, ''));
-  function renderBindings() { document.querySelectorAll('.key-bind').forEach((button) => { button.textContent=keyLabel(bindings[button.dataset.action]); button.classList.toggle('is-listening',button.dataset.action===bindingAction); }); $('.pause-window header span').textContent=`${keyLabel(bindings.menu)}で戻る`; }
+  function renderControlGuide() {
+    $('#guideLeft').textContent=keyLabel(bindings.left); $('#guideRight').textContent=keyLabel(bindings.right);
+    $('#guideJump').textContent=keyLabel(bindings.jump); $('#guideDash').textContent=keyLabel(bindings.dash);
+    $('#guideAttack').textContent=keyLabel(bindings.attack); $('#guideRepair').textContent=keyLabel(bindings.repair); $('#guideMenu').textContent=keyLabel(bindings.menu);
+    $('#guideAirDashRow').classList.toggle('is-locked',!abilities.airDash);
+    $('#guideAirDashStatus').textContent=abilities.airDash ? '空中・各着地1回' : 'STAGE 5で解放';
+  }
+  function setControlGuide(open) { world.controlGuide=Boolean(open) && world.started && !world.menuOpen && !world.stageClear && !world.courseSelect; $('#controlGuide').hidden=!world.controlGuide; $('#controlGuidePrompt').setAttribute('aria-expanded',String(world.controlGuide)); if(world.controlGuide) renderControlGuide(); }
+  $('#controlGuidePrompt').onclick=()=>setControlGuide(!world.controlGuide);
+  function renderBindings() { document.querySelectorAll('.key-bind').forEach((button) => { button.textContent=keyLabel(bindings[button.dataset.action]); button.classList.toggle('is-listening',button.dataset.action===bindingAction); }); $('.pause-window header span').textContent=`${keyLabel(bindings.menu)}で戻る`; renderControlGuide(); }
   function beginBinding(action) { bindingAction=action; keys.clear(); $('#keyConfigHint').textContent=`「${document.querySelector(`[data-action="${action}"]`).parentElement.firstElementChild.textContent}」に割り当てるキーを押してください。Escでキャンセル`; renderBindings(); }
   document.querySelectorAll('.key-bind').forEach((button) => button.onclick = () => beginBinding(button.dataset.action));
   $('#resetKeys').onclick = () => { Object.assign(bindings,defaultBindings); bindingAction=null; keys.clear(); $('#keyConfigHint').textContent='初期キーに戻しました。'; renderBindings(); persistSettings(); };
@@ -379,6 +388,8 @@
       }
       return;
     }
+    if (e.code === 'KeyH' && world.started && !world.menuOpen && !world.courseSelect && !world.stageClear) { e.preventDefault(); setControlGuide(!world.controlGuide); return; }
+    if (world.controlGuide && e.code === 'Escape') { e.preventDefault(); setControlGuide(false); return; }
     if (e.code === 'F2' && FEATURES.developerTools) { e.preventDefault(); setDeveloper(!world.developerOpen); return; }
     if (Object.values(bindings).includes(e.code)) e.preventDefault();
     if (e.code === bindings.menu) { setMenu(!world.menuOpen); return; }

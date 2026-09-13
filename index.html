@@ -18,6 +18,20 @@
         <div class="complete-gauge" id="completeGauge"><span>BETA</span><i><b id="completeBar"></b></i><strong>COMPLETE</strong></div>
         <div class="autosave-indicator" id="autosaveIndicator" hidden role="status" aria-live="polite"><i></i><span>AUTOSAVE</span></div>
         <div class="dialogue" id="dialogue"><p id="dialogueText"></p><span class="toast-countdown" id="toastCountdown" hidden></span><button id="closeDialogue" aria-label="会話を閉じる">Space / Esc</button></div>
+        <button class="control-guide-prompt" id="controlGuidePrompt" type="button" aria-controls="controlGuide" aria-expanded="false"><kbd>H</kbd><span>操作ガイド</span></button>
+        <section class="control-guide" id="controlGuide" hidden aria-label="操作ガイド">
+          <header><span>CONTROLS</span><strong>操作ガイド</strong><kbd>H</kbd></header>
+          <div class="guide-grid">
+            <div><kbd id="guideLeft">←</kbd><kbd id="guideRight">→</kbd><span>移動</span></div>
+            <div><kbd id="guideJump">Space</kbd><span>ジャンプ</span></div>
+            <div><kbd id="guideDash">Shift</kbd><span>地上ダッシュ <small>5秒</small></span></div>
+            <div><kbd id="guideAttack">Z</kbd><span>攻撃</span></div>
+            <div><kbd id="guideRepair">E</kbd><span>修復</span></div>
+            <div id="guideAirDashRow"><kbd>X</kbd><span>Air Dash <small id="guideAirDashStatus">空中・各着地1回</small></span></div>
+            <div><kbd id="guideMenu">Esc</kbd><span>メニュー</span></div>
+          </div>
+          <p><kbd>H</kbd> または <kbd>Esc</kbd> で閉じる</p>
+        </section>
         <div class="start-screen" id="startScreen">
           <p class="small-title">途中で止まった世界を、少しずつ完成させよう。</p>
           <h1>BETA</h1>
@@ -144,6 +158,6 @@
     </main>
     <script src="config.js?v=8"></script>
     <script src="stage-layouts.js?v=1"></script>
-    <script src="game.js?v=36"></script>
+    <script src="game.js?v=37"></script>
   </body>
 </html>
