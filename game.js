@@ -119,6 +119,13 @@
     const maxX=count*520; goalGate.x=maxX+220; goalGate.y=(platforms.find(p=>p.id==='goal').y-20); 
     shards.splice(0,shards.length,...Array.from({length:14},(_,i)=>({x:Math.min(maxX-80,300+i*(maxX-600)/13),y:(platforms[Math.min(count-1,Math.floor(i*count/14)+1)]?.y||450)-72,taken:false})));
     repairPoints.splice(0,repairPoints.length);
+    if (number===2) {
+      // 第2ステージ中盤の大きな切れ目は、修復して初めて渡れる仮設の連絡足場にする。
+      const anchor=platforms.find(platform=>platform.id==='s4');
+      const bridgeY=(anchor?.y ?? 560)-24;
+      platforms.push({id:'stage2-repair-bridge',x:2300,y:bridgeY,w:300,h:60,active:false});
+      repairPoints.push({x:(anchor?.x ?? 2080)+(anchor?.w ?? 220)-34,y:(anchor?.y ?? 605)-54,repaired:false,promptShown:false,platformId:'stage2-repair-bridge',hint:'宙吊りの連絡足場'});
+    }
     checkpoints.splice(0,checkpoints.length,...[0,Math.floor(count/3),Math.floor(count*2/3)].map((i,index)=>({x:defs[i][1]+80,platformId:defs[i][0],active:index===0})));
     courseMarkers.splice(0,courseMarkers.length,...defs.slice(1,-1).map(([_,x,y])=>[x+45,y-56]));
   }
@@ -391,7 +398,7 @@
     try { localStorage.setItem(SLOT_KEYS[slotIndex],JSON.stringify(data)); activeSaveSlot=slotIndex; renderSlots(); showAutoSaveIndicator(); }
     catch { /* ゲーム進行は止めず、セーブ画面で状態を確認できるようにする。 */ }
   }
-  function repair() { const point=repairPoints.find(p=>!p.repaired && Math.abs((player.x+player.w/2)-p.x)<80 && Math.abs((player.y+player.h)-p.y)<100); if(!point)return; const firstRepair=world.repaired===0; point.repaired=true; world.repaired++; const bridge=platforms.find(p=>p.id===point.platformId); if(bridge)bridge.active=true; addComplete(24); for(let i=0;i<26;i++)world.particles.push({x:point.x,y:point.y,vx:(Math.random()-.5)*300,vy:(Math.random()-.9)*330,life:.85,color:'#f7f6b2'}); showToast(firstRepair?'ピース「うわー！直った！よかった～」':'ピース「これも直った！よかった。」'); updateHud(); }
+  function repair() { const point=repairPoints.find(p=>!p.repaired && Math.abs((player.x+player.w/2)-p.x)<80 && Math.abs((player.y+player.h)-p.y)<100); if(!point)return; const firstRepair=world.currentCourse===1 && world.repaired===0; point.repaired=true; world.repaired++; const bridge=platforms.find(p=>p.id===point.platformId); if(bridge)bridge.active=true; addComplete(24); for(let i=0;i<26;i++)world.particles.push({x:point.x,y:point.y,vx:(Math.random()-.5)*300,vy:(Math.random()-.9)*330,life:.85,color:'#f7f6b2'}); showToast(world.currentCourse===1 ? (firstRepair?'ピース「うわー！直った！よかった～」':'ピース「これも直った！よかった。」') : `ピース「${point.hint}を直したよ。」`); updateHud(); }
   function respawn() { const point=checkpoints[world.checkpointIndex]; const platform=platforms.find(p=>p.id===point.platformId); player.x=point.x; player.y=platform ? platform.y-20-player.h : 430; player.vx=0; player.vy=0; player.invulnerable=1.1; }
   function strike() {
     player.attack = .34; player.attackCooldown = .40;
