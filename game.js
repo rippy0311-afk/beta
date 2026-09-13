@@ -65,9 +65,9 @@
   const abilities = FEATURES.abilitySystem ? { airDash:false, doubleJump:false, glide:false } : {};
   const AIR_DASH_MAX_LEVEL = 5;
   const abilityLevels = { airDash: 1 };
-  const images = { background: new Image(), terrain: new Image(), orb: new Image(), sprites: new Image(), walk: new Image(), groundDash: new Image(), enemy: new Image(), attack: new Image(), pieceSlime: new Image() };
-  images.background.src = 'assets/castle-under-construction-background.png';
-  images.terrain.src = 'assets/foundation-terrain.png';
+  const images = { background: new Image(), terrain: new Image(), repairBefore:new Image(), repairAfter:new Image(), orb: new Image(), sprites: new Image(), walk: new Image(), groundDash: new Image(), enemy: new Image(), attack: new Image(), pieceSlime: new Image() };
+  images.background.src = 'assets/stages/stage-01-background.png';
+  images.terrain.src = 'assets/stages/stage-01-platform.png';
   // オーブは基礎足場のシートではなく、専用の結晶が入った素材シートから描画する。
   images.orb.src = 'assets/terrain-assets.png';
   images.sprites.src = 'assets/ren-sprites.png';
@@ -77,7 +77,7 @@
   images.attack.src = 'assets/ren-attack-cycle.png';
   images.pieceSlime.src = 'assets/piece-and-half-slime.png';
 
-  const world = { camera: 0, backgroundOffset: 0, started: !FEATURES.titleScreen, completed: 0, complete: 0, messageShown: false, particles: [], gateExit:0, gateExitParticles:[], menuOpen: false, controlGuide:false, developerOpen: false, courseSelect: false, clearedCourses: 0, currentCourse: 1, floating: false, stageClear: false, gateHintShown: false, guideSeen: false, repaired: 0, time: 0, checkpointIndex: 0, dialogueOpen: false, toastTimer: null, toastCountdownTimer: null, toastEndsAt: 0, autoSaveTimer: null, combo: 0, comboTimer: 0, stageBanner: 0, stageTipShown: false, stats:{orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0} };
+  const world = { camera: 0, backgroundOffset: 0, started: !FEATURES.titleScreen, completed: 0, complete: 0, messageShown: false, particles: [], afterimages:[], repairWaves:[], attackFlash:0, gateExit:0, gateExitParticles:[], menuOpen: false, controlGuide:false, developerOpen: false, courseSelect: false, clearedCourses: 0, currentCourse: 1, floating: false, stageClear: false, gateHintShown: false, guideSeen: false, repaired: 0, time: 0, checkpointIndex: 0, dialogueOpen: false, toastTimer: null, toastCountdownTimer: null, toastEndsAt: 0, autoSaveTimer: null, combo: 0, comboTimer: 0, stageBanner: 0, stageTipShown: false, stats:{orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0} };
   const player = { x: 110, y: 450, w: 46, h: 74, vx: 0, vy: 0, grounded: false, facing: 1, walkClock: 0, groundDash: 0, dashCooldown: 0, invulnerable: 0, attack: 0, attackCooldown: 0, airDashAvailable: false, airDash: 0 };
   // 速度を維持しながら渡る、長い浮島スプリント航路。着地点と次の目印を常に画面内に置く。
   const platforms = [
@@ -106,6 +106,7 @@
   const courseMarkers = [[540,480],[845,410],[1450,420],[1740,350],[2350,380],[2950,400],[3590,385],[4170,350],[4830,390],[5100,330],[5760,340],[6050,270],[6990,370],[7280,300],[7950,450],[8580,300]];
   const courseOneMarkers = courseMarkers.map(point=>[...point]);
   const courseNames=['はじまりの足場島','雲裂きの工区','宙吊りの回廊','崩れた採掘路','風切りの縦坑','月光の結晶庭','夜渡りの連橋','風化した尖塔','氷雲の足場','熔岩雲の抜け道','落下遺跡の航路','星喰いの外縁','Chapter 1 最終工区'];
+  const stageAsset = (stage, kind) => `assets/stages/${kind.replace('{stage}',String(stage).padStart(2,'0'))}`;
   const abilityGuides = [
     { course:3, name:'Astra', color:'#b777ff', ability:'能力の星図を案内する' },
     { course:5, name:'Sol', color:'#ffe15b', ability:'Air Dash を託す' },
@@ -114,6 +115,10 @@
   ];
   function loadCourse(number) {
     world.currentCourse=number; abilities.airDash=number>=5;
+    images.background.src=stageAsset(number,'stage-{stage}-background.png');
+    images.terrain.src=stageAsset(number,'stage-{stage}-platform.png');
+    images.repairBefore.src=stageAsset(number,'repair-{stage}-before.png');
+    images.repairAfter.src=stageAsset(number,'repair-{stage}-after.png');
     world.stageBanner=FEATURES.stageBanner ? 2.5 : 0;
     if(number===1){ platforms.splice(0,platforms.length,...courseOneState.platforms.map(p=>({...p,defaultActive:p.active}))); shards.splice(0,shards.length,...courseOneState.shards.map(s=>({...s}))); repairPoints.splice(0,repairPoints.length,...courseOneState.repairs.map(p=>({...p}))); checkpoints.splice(0,checkpoints.length,...courseOneState.checkpoints.map(p=>({...p}))); enemies.splice(0,enemies.length,...courseOneEnemies.map(enemy=>({...enemy}))); courseMarkers.splice(0,courseMarkers.length,...courseOneMarkers.map(point=>[...point])); goalGate.x=8760; goalGate.y=345; return; }
     const layout=stageLayouts[number];
@@ -294,13 +299,14 @@
     document.querySelectorAll('.course-route path').forEach((path) => path.classList.toggle('is-visible',Number(path.dataset.step)<=world.clearedCourses));
     document.querySelectorAll('.course-node').forEach((node) => {
       const course=Number(node.dataset.course); const cleared=course<=world.clearedCourses; const available=course===world.clearedCourses+1;
+      node.style.setProperty('--island-image',`url("assets/stages/stage-${String(course).padStart(2,'0')}-island.png")`);
       node.classList.toggle('cleared',cleared); node.classList.toggle('available',available); node.classList.toggle('locked',!cleared&&!available); node.disabled=!cleared&&!available;
     });
   }
   function showCourseSelect(message='次の行き先を選んでください。') { setDeveloper(false); setControlGuide(false); world.courseSelect=true; world.menuOpen=false; $('#pauseMenu').hidden=true; closeDialogue(); $('#courseSelect').hidden=false; renderCourseMap(); $('#courseMessage').textContent=message; }
   function openCourseSelect() { world.clearedCourses=Math.max(world.clearedCourses,world.currentCourse); persistWorldProgress(); showCourseSelect(world.currentCourse===13?'CHAPTER 1 COMPLETE！ アルケアの航路がひとつ完成した。':'次の行き先を選んでください。'); }
   function closeCourseSelect() { world.courseSelect=false; $('#courseSelect').hidden=true; }
-  function resetGame() { world.camera=0; world.backgroundOffset=0; world.time=0; world.checkpointIndex=0; world.completed=0; world.complete=0; world.repaired=0; world.combo=0; world.comboTimer=0; world.stats={orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0}; world.stageTipShown=false; world.messageShown=false; world.gateHintShown=false; world.guideSeen=false; world.particles=[]; world.gateExit=0; world.gateExitParticles=[]; world.stageClear=false; world.courseSelect=false; world.floating=false; setControlGuide(false); $('#devFloat').textContent='浮遊：OFF'; $('#stageClear').hidden=true; $('#courseSelect').hidden=true; const start=checkpoints[0],startPlatform=platforms.find(p=>p.id===start.platformId); player.x=start.x; player.y=(startPlatform?.y||520)-20-player.h; player.vx=0; player.vy=0; player.attack=0; player.attackCooldown=0; player.groundDash=0; player.dashCooldown=0; player.airDash=0; player.airDashAvailable=abilities.airDash; player.invulnerable=0; shards.forEach(s=>s.taken=false); repairPoints.forEach(p=>{p.repaired=false;p.promptShown=false;}); platforms.forEach(p=>p.active=p.defaultActive ?? !['bridge-a','bridge-b'].includes(p.id)); checkpoints.forEach((p,i)=>p.active=i===0); enemies.forEach(e=>e.alive=true); $('#completeBar').style.width='0%'; updateHud(); $('#runTimer').textContent='00:00.00'; setMenu(false); showDialogue(abilities.airDash?'ピース「Air Dashが使えるよ！ 空中で X を押して、向いている方向へ飛ぼう。」':GAME_CONFIG.initialDialogue); }
+  function resetGame() { world.camera=0; world.backgroundOffset=0; world.time=0; world.checkpointIndex=0; world.completed=0; world.complete=0; world.repaired=0; world.combo=0; world.comboTimer=0; world.stats={orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0}; world.stageTipShown=false; world.messageShown=false; world.gateHintShown=false; world.guideSeen=false; world.particles=[]; world.afterimages=[]; world.repairWaves=[]; world.attackFlash=0; world.gateExit=0; world.gateExitParticles=[]; world.stageClear=false; world.courseSelect=false; world.floating=false; setControlGuide(false); $('#devFloat').textContent='浮遊：OFF'; $('#stageClear').hidden=true; $('#courseSelect').hidden=true; const start=checkpoints[0],startPlatform=platforms.find(p=>p.id===start.platformId); player.x=start.x; player.y=(startPlatform?.y||520)-20-player.h; player.vx=0; player.vy=0; player.attack=0; player.attackCooldown=0; player.groundDash=0; player.dashCooldown=0; player.airDash=0; player.airDashAvailable=abilities.airDash; player.invulnerable=0; shards.forEach(s=>s.taken=false); repairPoints.forEach(p=>{p.repaired=false;p.promptShown=false;}); platforms.forEach(p=>p.active=p.defaultActive ?? !['bridge-a','bridge-b'].includes(p.id)); checkpoints.forEach((p,i)=>p.active=i===0); enemies.forEach(e=>e.alive=true); $('#completeBar').style.width='0%'; updateHud(); $('#runTimer').textContent='00:00.00'; setMenu(false); showDialogue(abilities.airDash?'ピース「Air Dashが使えるよ！ 空中で X を押して、向いている方向へ飛ぼう。」':GAME_CONFIG.initialDialogue); }
   $('#resumeGame').onclick = () => setMenu(false); $('#restartGame').onclick = resetGame;
   $('#exitStage').onclick = () => {
     // 退出は現在のステージ用オートセーブだけを削除し、解放済みコースの記録は残す。
@@ -447,10 +453,11 @@
     try { localStorage.setItem(SLOT_KEYS[slotIndex],JSON.stringify(data)); activeSaveSlot=slotIndex; renderSlots(); showAutoSaveIndicator(); }
     catch { /* ゲーム進行は止めず、セーブ画面で状態を確認できるようにする。 */ }
   }
-  function repair() { const point=repairPoints.find(p=>!p.repaired && Math.abs((player.x+player.w/2)-p.x)<80 && Math.abs((player.y+player.h)-p.y)<100); if(!point)return; const firstRepair=world.currentCourse===1 && world.repaired===0; point.repaired=true; world.repaired++; world.stats.repairs++; const bridge=platforms.find(p=>p.id===point.platformId); if(bridge)bridge.active=true; addComplete(24); for(let i=0;i<26;i++)world.particles.push({x:point.x,y:point.y,vx:(Math.random()-.5)*300,vy:(Math.random()-.9)*330,life:.85,color:'#f7f6b2'}); showToast(world.currentCourse===1 ? (firstRepair?'ピース「うわー！直った！よかった～」':'ピース「これも直った！よかった。」') : `ピース「${point.hint}を直したよ。」`); updateHud(); }
+  function repair() { const point=repairPoints.find(p=>!p.repaired && Math.abs((player.x+player.w/2)-p.x)<80 && Math.abs((player.y+player.h)-p.y)<100); if(!point)return; const firstRepair=world.currentCourse===1 && world.repaired===0; point.repaired=true; world.repaired++; world.stats.repairs++; const bridge=platforms.find(p=>p.id===point.platformId); if(bridge)bridge.active=true; addComplete(24); if(FEATURES.repairPulse)world.repairWaves.push({x:point.x,y:point.y,life:.7}); for(let i=0;i<26;i++)world.particles.push({x:point.x,y:point.y,vx:(Math.random()-.5)*300,vy:(Math.random()-.9)*330,life:.85,color:'#f7f6b2'}); showToast(world.currentCourse===1 ? (firstRepair?'ピース「うわー！直った！よかった～」':'ピース「これも直った！よかった。」') : `ピース「${point.hint}を直したよ。」`); updateHud(); }
   function respawn() { const point=checkpoints[world.checkpointIndex]; const platform=platforms.find(p=>p.id===point.platformId); player.x=point.x; player.y=platform ? platform.y-20-player.h : 430; player.vx=0; player.vy=0; player.invulnerable=1.1; }
   function strike() {
     player.attack = .34; player.attackCooldown = .40; world.stats.attacks++;
+    if(FEATURES.attackArc) world.attackFlash=.16;
     if (!player.grounded) {
       // 空中攻撃は右図のような浅い弧を描く：小さく上昇してから慣性と重力で前方へ落下する。
       player.vy = Math.min(player.vy, -180);
@@ -499,6 +506,7 @@
       const dashDirection=dir || player.facing;
       player.facing=dashDirection; player.groundDash=.30; player.dashCooldown=5; player.vx=dashDirection*720;
       keys.delete(bindings.dash); keys.delete('dash');
+      if(FEATURES.dashAfterimages) for(let i=0;i<4;i++)world.afterimages.push({x:player.x-player.facing*i*18,y:player.y,life:.34-i*.045,color:'#65e7ff'});
       if (FEATURES.particles) for(let i=0;i<10;i++) world.particles.push({x:player.x+player.w/2-player.facing*18,y:player.y+player.h-7,vx:-player.facing*(70+Math.random()*150),vy:-Math.random()*80,life:.28,color:'#b8f9ff'});
     }
     if (!world.floating && input('jump') && player.grounded) { player.vy=-tuning.jumpVelocity; player.grounded=false; world.stats.jumps++; keys.delete(bindings.jump); keys.delete('jump'); }
@@ -506,6 +514,8 @@
       // Lv1=主人公1人分、以後は0.5人分ずつ増加し、Lv5で最大3人分まで届く。
       const distance=player.w*(1+(abilityLevels.airDash-1)*.5);
       player.airDashAvailable=false; player.airDash=.18; player.vx=player.facing*distance/.18; player.vy=-35; world.stats.dashes++;
+      if(FEATURES.airDashRing) world.repairWaves.push({x:player.x+player.w/2,y:player.y+player.h/2,life:.38,color:'#ffe45a',max:64});
+      if(FEATURES.dashAfterimages) for(let i=0;i<5;i++)world.afterimages.push({x:player.x-player.facing*i*14,y:player.y+i*2,life:.30-i*.035,color:'#fff09a'});
       keys.delete('KeyX'); if(FEATURES.particles) for(let i=0;i<16;i++)world.particles.push({x:player.x+player.w/2,y:player.y+34,vx:-player.facing*(70+Math.random()*180),vy:(Math.random()-.5)*140,life:.35,color:'#ffe45a'});
     }
     if (input('attack') && player.attackCooldown <= 0) { strike(); keys.delete(bindings.attack); keys.delete('attack'); }
@@ -563,6 +573,9 @@
     // 一枚背景を非ループで使う。走るほどわずかに早く流れるが、前景より遥かに遅い。
     const backgroundRate = 0.022 + Math.min(0.030, Math.abs(player.vx) / tuning.playerSpeed * 0.030);
     world.backgroundOffset = Math.max(0, Math.min(380, world.backgroundOffset + player.vx * backgroundRate * dt));
+    world.attackFlash=Math.max(0,world.attackFlash-dt);
+    world.afterimages=world.afterimages.filter(effect=>(effect.life-=dt)>0);
+    world.repairWaves=world.repairWaves.filter(effect=>(effect.life-=dt)>0);
     world.particles = world.particles.filter((p) => (p.life-=dt)>0); world.particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=500*dt;});
   }
   function drawImagePart(img, sx,sy,sw,sh, dx,dy,dw,dh) { ctx.drawImage(img,sx,sy,sw,sh,dx,dy,dw,dh); }
@@ -571,9 +584,13 @@
     ctx.fillStyle='#071126';ctx.fillRect(0,0,GAME_CONFIG.width,GAME_CONFIG.height);
     // 1650pxへ広げた一枚絵を最大380pxだけ移動。繰り返し描画は行わない。
     ctx.drawImage(images.background,-world.backgroundOffset,0,1650,GAME_CONFIG.height);
+    if(FEATURES.windParticles){ctx.save();ctx.globalAlpha=.2;ctx.strokeStyle='#c8f7ff';for(let i=0;i<14;i++){const x=(i*113+performance.now()/38)%1380-50,y=135+(i*71)%390;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+32,y-2);ctx.stroke();}ctx.restore();}
     if (FEATURES.speedStreaks && Math.abs(player.vx)>tuning.playerSpeed*.72) { ctx.save();ctx.globalAlpha=.28;ctx.strokeStyle='#b8f9ff';ctx.lineWidth=2;for(let i=0;i<10;i++){const y=170+i*38+(i%2)*9;const x=player.facing>0?80+i*65:810-i*65;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-player.facing*(55+i*6),y);ctx.stroke();}ctx.restore(); }
     ctx.save(); ctx.translate(-world.camera,0);
-    for (const p of platforms) if(p.active) { const sx = p.x < 450 ? 28 : 680; drawImagePart(images.terrain,sx,60,700,420,p.x,p.y-18,p.w,p.h+70); }
+    for (const p of platforms) if(p.active) {
+      // 修復前の基礎は active=false のため、見た目だけでなく当たり判定も存在しない。
+      if(images.terrain.complete && images.terrain.naturalWidth) drawImagePart(images.terrain,0,0,images.terrain.naturalWidth,images.terrain.naturalHeight,p.x,p.y-18,p.w,p.h+70);
+    }
     // 未完成のアーチ。青いオーブレンガが1個ずつ増え、全14個で出口が開く。
     ctx.save(); ctx.translate(goalGate.x,goalGate.y); const built=Math.min(shards.length,world.completed); const brickW=22, brickH=14;
     ctx.shadowColor=built===shards.length?'#fff09a':'#2fe4ff'; ctx.shadowBlur=built===shards.length?18:9;
@@ -591,22 +608,32 @@
       ctx.globalAlpha=.75;ctx.fillStyle='#fff6b1';ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();ctx.restore();
     }
     ctx.fillStyle='#e9fbff';ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.fillText(`ORB BRICKS  ${built} / ${shards.length}`,goalGate.w/2,-goalGate.h-12);ctx.textAlign='start';ctx.restore();
-    for (let i=1;i<checkpoints.length;i++) { const point=checkpoints[i]; const platform=platforms.find(p=>p.id===point.platformId); if(!platform || !platform.active)continue; const fy=platform.y-84; ctx.save();ctx.translate(point.x,fy);ctx.strokeStyle=point.active?'#ffe77c':'#a8d5ec';ctx.lineWidth=3;ctx.shadowColor=point.active?'#ffc84a':'#3ddfff';ctx.shadowBlur=point.active?14:7;if(FEATURES.checkpointAura&&point.active){ctx.globalAlpha=.3;ctx.beginPath();ctx.arc(7,15,25+Math.sin(performance.now()/180)*5,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;}ctx.beginPath();ctx.moveTo(0,48);ctx.lineTo(0,0);ctx.lineTo(22,8);ctx.lineTo(0,17);ctx.closePath();ctx.stroke();ctx.fillStyle=point.active?'#fff0a4':'#75dcff';ctx.fill();ctx.fillStyle='#e9f8ff';ctx.font='bold 10px sans-serif';ctx.fillText('CP',5,-4);ctx.restore(); }
+    if(FEATURES.gateSparkles){ctx.save();ctx.fillStyle=built===shards.length?'#fff1a4':'#65e8ff';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=9;for(let i=0;i<5;i++){const a=performance.now()/270+i*1.7;ctx.fillRect(goalGate.x+goalGate.w/2+Math.cos(a)*62-2,goalGate.y-74+Math.sin(a*1.4)*48,4,4);}ctx.restore();}
+    for (let i=1;i<checkpoints.length;i++) { const point=checkpoints[i]; const platform=platforms.find(p=>p.id===point.platformId); if(!platform || !platform.active)continue; const fy=platform.y-84; ctx.save();ctx.translate(point.x,fy);ctx.strokeStyle=point.active?'#ffe77c':'#a8d5ec';ctx.lineWidth=3;ctx.shadowColor=point.active?'#ffc84a':'#3ddfff';ctx.shadowBlur=point.active?14:7;if(FEATURES.checkpointBeam&&point.active){ctx.globalAlpha=.18;ctx.strokeStyle='#fff19b';ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(8,15);ctx.lineTo(8,-120);ctx.stroke();ctx.globalAlpha=1;}if(FEATURES.checkpointAura&&point.active){ctx.globalAlpha=.3;ctx.beginPath();ctx.arc(7,15,25+Math.sin(performance.now()/180)*5,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;}ctx.beginPath();ctx.moveTo(0,48);ctx.lineTo(0,0);ctx.lineTo(22,8);ctx.lineTo(0,17);ctx.closePath();ctx.stroke();ctx.fillStyle=point.active?'#fff0a4':'#75dcff';ctx.fill();ctx.fillStyle='#e9f8ff';ctx.font='bold 10px sans-serif';ctx.fillText('CP',5,-4);ctx.restore(); }
     // スピードランの進行方向を、浮遊する青い風標でさりげなく示す。
     for (const [x,y] of courseMarkers) { ctx.save(); ctx.translate(x,y); ctx.fillStyle='#aaf6ff'; ctx.shadowColor='#40dfff';ctx.shadowBlur=10; ctx.beginPath();ctx.moveTo(-13,-7);ctx.lineTo(8,-7);ctx.lineTo(8,-14);ctx.lineTo(22,0);ctx.lineTo(8,14);ctx.lineTo(8,7);ctx.lineTo(-13,7);ctx.closePath();ctx.fill();ctx.restore(); }
-    for (const point of repairPoints) if(!point.repaired) { ctx.save(); ctx.translate(point.x,point.y); ctx.strokeStyle='#fff39c'; ctx.lineWidth=3; ctx.shadowColor='#f6e767';ctx.shadowBlur=16;ctx.strokeRect(-15,-15,30,30);ctx.fillStyle='#fff6b6';ctx.font='bold 13px sans-serif';ctx.fillText('E 修復',-25,-25);ctx.restore(); }
-    if (FEATURES.collectibles) for (const s of shards) if(!s.taken) { const pulse=FEATURES.orbPulse?1+Math.sin(performance.now()/180+s.x)*.12:1;ctx.save(); ctx.translate(s.x,s.y+Math.sin(performance.now()/230+s.x)*7);ctx.scale(pulse,pulse); ctx.shadowColor='#55eaff';ctx.shadowBlur=22; drawImagePart(images.orb,1075,515,190,230,-26,-30,52,64);ctx.restore(); }
+    if(FEATURES.repairPulse||FEATURES.airDashRing) for(const wave of world.repairWaves){const t=1-wave.life/(wave.max?.38:.7),r=10+(wave.max||115)*t;ctx.save();ctx.globalAlpha=(1-t)*.75;ctx.strokeStyle=wave.color||'#fff59f';ctx.lineWidth=3;ctx.beginPath();ctx.arc(wave.x,wave.y,r,0,Math.PI*2);ctx.stroke();ctx.restore();}
+    for (const point of repairPoints) {
+      // E修復の対象は露出した非可動の基礎。完成後は対応する建築物として表示する。
+      const repairImage=point.repaired ? images.repairAfter : images.repairBefore;
+      if(repairImage.complete && repairImage.naturalWidth) ctx.drawImage(repairImage,point.x-120,point.y-86,240,128);
+      if(!point.repaired) { ctx.save();ctx.translate(point.x,point.y);ctx.strokeStyle='#fff39c';ctx.lineWidth=3;ctx.shadowColor='#f6e767';ctx.shadowBlur=16;ctx.strokeRect(-15,-15,30,30);ctx.fillStyle='#fff6b6';ctx.font='bold 13px sans-serif';ctx.fillText('E 修復',-25,-25);ctx.restore(); }
+    }
+    if (FEATURES.collectibles) for (const s of shards) if(!s.taken) { const pulse=FEATURES.orbPulse?1+Math.sin(performance.now()/180+s.x)*.12:1;ctx.save(); ctx.translate(s.x,s.y+Math.sin(performance.now()/230+s.x)*7);ctx.scale(pulse,pulse); ctx.shadowColor='#55eaff';ctx.shadowBlur=22; drawImagePart(images.orb,1075,515,190,230,-26,-30,52,64);if(FEATURES.orbPulse){ctx.fillStyle='#d9ffff';for(let i=0;i<3;i++){const a=performance.now()/260+i*2.1;ctx.fillRect(Math.cos(a)*30-2,Math.sin(a)*19-2,4,4);}}ctx.restore(); }
+    if(FEATURES.dashAfterimages) for(const echo of world.afterimages){ctx.save();ctx.globalAlpha=Math.min(.45,echo.life*1.5);ctx.fillStyle=echo.color;ctx.fillRect(echo.x-7,echo.y+22,58,58);ctx.restore();}
+    if(FEATURES.playerShadow){ctx.save();ctx.globalAlpha=.34;ctx.fillStyle='#020611';ctx.beginPath();ctx.ellipse(player.x+player.w/2,player.y+player.h+5,28,6,0,0,Math.PI*2);ctx.fill();ctx.restore();}
     const spriteState = !player.grounded ? 2 : Math.abs(player.vx)>2 ? 1 : 0;
     ctx.save(); ctx.translate(player.x+player.w/2,player.y); if(player.facing<0)ctx.scale(-1,1);
     const drawPlayerSprite=()=>{ if(player.attack > 0) { const elapsed=.34-player.attack; const attackFrame=elapsed<.11?0:elapsed<.23?1:2; const frames=[[18,70,590,570,-52,-6,104,101],[610,90,830,535,-67,-1,146,96],[1450,90,690,535,-53,-1,112,96]][attackFrame]; drawImagePart(images.attack,...frames); } else if(player.groundDash > 0) { const frame=Math.min(4,Math.floor((.30-player.groundDash)/.06)); const frameWidth=images.groundDash.width/5; drawImagePart(images.groundDash,frame*frameWidth,200,frameWidth,470,-52,0,104,108); } else if(spriteState===1) { const frame=Math.floor(player.walkClock)%5; const frameWidth=images.walk.width/5; drawImagePart(images.walk,frame*frameWidth,100,frameWidth,550,-45,-6,90,108); } else drawImagePart(images.sprites,[60,650,1240][spriteState],145,530,730,-42,0,84,108); };
-    if(world.gateExit > 0) { const dissolve=Math.min(1,(.92-world.gateExit)/.58); ctx.save(); ctx.beginPath(); ctx.rect(-80,-18,160,Math.max(0,124*(1-dissolve))); ctx.clip(); drawPlayerSprite(); ctx.restore(); } else drawPlayerSprite(); ctx.restore();
+    if(world.gateExit > 0) { const dissolve=Math.min(1,(.92-world.gateExit)/.58); ctx.save(); ctx.beginPath(); ctx.rect(-80,-18,160,Math.max(0,124*(1-dissolve))); ctx.clip(); drawPlayerSprite(); ctx.restore(); } else drawPlayerSprite(); if(FEATURES.attackArc&&world.attackFlash>0){ctx.globalAlpha=world.attackFlash/.16;ctx.strokeStyle='#bdf9ff';ctx.lineWidth=5;ctx.beginPath();ctx.arc(player.facing*24,34,48,-1.1,1.1);ctx.stroke();}ctx.restore();
     const pieceY = player.y - 34 + Math.sin(performance.now()/220)*7; ctx.save();ctx.translate(player.x-16,pieceY);ctx.globalAlpha=world.gateExit>0?Math.max(0,1-((.92-world.gateExit)/.32)):1;ctx.shadowColor='#b9f8ff';ctx.shadowBlur=16;drawImagePart(images.pieceSlime,130,150,580,620,-22,-22,45,50);ctx.restore();
     const guide=currentGuide(); const guidePlatform=guide && platforms[Math.max(1,Math.floor(platforms.length*.45))];
     if(guide && guidePlatform) { const gy=guidePlatform.y-20-56+Math.sin(performance.now()/230)*6; ctx.save();ctx.translate(guidePlatform.x+guidePlatform.w/2,gy);ctx.shadowColor=guide.color;ctx.shadowBlur=20;drawImagePart(images.pieceSlime,130,150,580,620,-24,-24,48,54);ctx.globalCompositeOperation='source-atop';ctx.globalAlpha=.58;ctx.fillStyle=guide.color;ctx.fillRect(-28,-28,56,62);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.fillStyle='#f7fbff';ctx.textAlign='center';ctx.font='bold 12px sans-serif';ctx.fillText(guide.name,0,-35);ctx.textAlign='start';ctx.restore(); }
-    for (const enemy of enemies) if (enemy.alive) { const bob = Math.sin(performance.now()/210 + enemy.phase) * 4; ctx.save(); ctx.translate(enemy.x + enemy.w/2, enemy.y + bob); ctx.shadowColor='#5eeaff'; ctx.shadowBlur=10; if(enemy.dir<0)ctx.scale(-1,1); drawImagePart(images.pieceSlime,1060,260,650,560,-35,-8,70,60); if(FEATURES.enemyEyes){ctx.fillStyle='#ff6cf0';ctx.shadowColor='#ff4ee8';ctx.shadowBlur=8;ctx.fillRect(7,-1,5,5);ctx.fillRect(17,-1,5,5);}ctx.restore(); }
+    for (const enemy of enemies) if (enemy.alive) { const bob = Math.sin(performance.now()/210 + enemy.phase) * 4; ctx.save(); ctx.translate(enemy.x + enemy.w/2, enemy.y + bob); ctx.shadowColor='#5eeaff'; ctx.shadowBlur=10; if(enemy.dir<0)ctx.scale(-1,1); drawImagePart(images.pieceSlime,1060,260,650,560,-35,-8,70,60); if(FEATURES.enemyEyes){ctx.fillStyle='#ff6cf0';ctx.shadowColor='#ff4ee8';ctx.shadowBlur=8;ctx.fillRect(7,-1,5,5);ctx.fillRect(17,-1,5,5);}ctx.restore();if(FEATURES.enemyDirectionMarkers){ctx.save();ctx.translate(enemy.x+enemy.w/2,enemy.y-10);ctx.fillStyle='#ff90eb';ctx.beginPath();ctx.moveTo(enemy.dir*10,0);ctx.lineTo(-enemy.dir*5,-5);ctx.lineTo(-enemy.dir*5,5);ctx.closePath();ctx.fill();ctx.restore();} }
     if(world.gateExit > 0) { const elapsed=.92-world.gateExit; for(const p of world.gateExitParticles) { const raw=(elapsed-p.delay)/p.duration; if(raw<0) continue; const t=Math.min(1,raw), eased=1-(1-t)*(1-t); const x=p.x+(p.targetX-p.x)*eased+Math.sin(t*Math.PI)*p.spin, y=p.y+(p.targetY-p.y)*eased-Math.sin(t*Math.PI)*18; ctx.save();ctx.globalAlpha=(1-t)*.95;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=10;ctx.fillRect(x-p.size/2,y-p.size/2,p.size,p.size);ctx.restore(); } }
     if(FEATURES.particles) for(const p of world.particles){ctx.globalAlpha=p.life;ctx.fillStyle=p.color || '#b8faff';ctx.fillRect(p.x-2,p.y-2,5,5);ctx.globalAlpha=1;}
     ctx.restore();
+    if(FEATURES.dangerVignette && (player.y>620 || enemies.some(enemy=>enemy.alive&&Math.hypot(enemy.x-player.x,enemy.y-player.y)<95))){ctx.save();ctx.globalAlpha=player.y>620?.32:.18;ctx.strokeStyle='#ff4f8d';ctx.lineWidth=32;ctx.strokeRect(0,0,GAME_CONFIG.width,GAME_CONFIG.height);ctx.restore();}
     if (FEATURES.orbCompass) { const target=shards.filter(shard=>!shard.taken).sort((a,b)=>Math.abs(a.x-player.x)-Math.abs(b.x-player.x))[0]; if(target){const direction=Math.sign(target.x-player.x)||1;ctx.save();ctx.translate(640,42);ctx.fillStyle='#b9f9ff';ctx.shadowColor='#4ce7ff';ctx.shadowBlur=12;ctx.beginPath();ctx.moveTo(direction*18,0);ctx.lineTo(-direction*10,-10);ctx.lineTo(-direction*10,10);ctx.closePath();ctx.fill();ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText('NEXT ORB',0,-16);ctx.restore();} }
     if (FEATURES.comboMeter && world.combo>1) { ctx.save();ctx.globalAlpha=Math.min(1,world.comboTimer);ctx.fillStyle='#fff09a';ctx.shadowColor='#ffb744';ctx.shadowBlur=12;ctx.font='bold 24px sans-serif';ctx.textAlign='center';ctx.fillText(`COMBO ×${world.combo}`,640,92);ctx.restore(); }
     if (FEATURES.stageBanner && world.stageBanner>0) { world.stageBanner=Math.max(0,world.stageBanner-1/60);ctx.save();ctx.globalAlpha=Math.min(1,world.stageBanner*2);ctx.fillStyle='#eafcff';ctx.shadowColor='#45dfff';ctx.shadowBlur=18;ctx.font='bold 30px sans-serif';ctx.textAlign='center';ctx.fillText(`STAGE ${world.currentCourse}　${courseNames[world.currentCourse-1]}`,640,165);ctx.restore(); }

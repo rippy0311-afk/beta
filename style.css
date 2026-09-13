@@ -35,3 +35,9 @@ canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; 
 .save-slot { padding:10px 0; border-bottom:1px solid #38577e; }.save-slot p { margin:0 0 6px; font-size:12px; }.save-slot button { margin-right:8px; padding:7px 14px; border:1px solid #6a94be; color:#eaf7ff; background:#132b52; cursor:pointer; }.save-slot button:disabled { opacity:.4; cursor:default; }.pause-window { max-height:100%; overflow:auto; } #saveStatus, #settingsStatus { margin-top:12px; font-size:12px; }
 
 @media (max-width:650px) { .pause-menu { position:fixed; } .pause-window { min-height:0; max-height:calc(100dvh - 24px); } }
+
+/* 各コースの浮島は、ステージごとに個別に生成した画像を地図ノードへ表示する。 */
+.course-node { width:52px; height:52px; background:#15385fcc var(--island-image) center / cover no-repeat; }
+.course-node span { top:56px; }
+.course-node.cleared,.course-node.available { background-color:#173b69; }
+.course-node.locked { background-color:#172845bb; filter:saturate(.25) brightness(.55); }

@@ -31,6 +31,16 @@ const FEATURES = Object.freeze({
   enemyEyes: true,
   stageBanner: true,
   courseTips: true,
+  windParticles: true,
+  playerShadow: true,
+  attackArc: true,
+  dashAfterimages: true,
+  airDashRing: true,
+  enemyDirectionMarkers: true,
+  checkpointBeam: true,
+  repairPulse: true,
+  gateSparkles: true,
+  dangerVignette: true,
 });
 
 const GAME_CONFIG = Object.freeze({
