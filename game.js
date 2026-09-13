@@ -71,8 +71,8 @@
   // オーブは基礎足場のシートではなく、専用の結晶が入った素材シートから描画する。
   images.orb.src = 'assets/terrain-assets.png';
   images.sprites.src = 'assets/ren-sprites.png';
-  images.walk.src = 'assets/ren-walk-cycle-5.png';
-  images.groundDash.src = 'assets/ren-ground-dash-cycle.png';
+  images.walk.src = 'assets/ren-walk-cycle-5.png?v=2';
+  images.groundDash.src = 'assets/ren-ground-dash-cycle.png?v=2';
   images.enemy.src = 'assets/corruption-wisp.png';
   images.attack.src = 'assets/ren-attack-cycle.png';
   images.pieceSlime.src = 'assets/piece-and-half-slime.png';
@@ -439,7 +439,8 @@
     } else if (!airAttacking && !airDashing && !groundDashing) {
       player.vx = dir * tuning.playerSpeed;
       if (dir) player.facing = dir;
-      if (dir && player.grounded) player.walkClock += dt * 13;
+      // 移動距離に対して足運びが遅いと滑って見えるため、5コマを約18fpsで進める。
+      if (dir && player.grounded) player.walkClock += dt * 18;
     } else if (airAttacking) {
       // 空中攻撃中は入力を受けず、攻撃開始時の移動速度だけが慣性として緩やかに減衰する。
       player.vx *= Math.pow(0.06, dt);
@@ -548,7 +549,7 @@
     for (const point of repairPoints) if(!point.repaired) { ctx.save(); ctx.translate(point.x,point.y); ctx.strokeStyle='#fff39c'; ctx.lineWidth=3; ctx.shadowColor='#f6e767';ctx.shadowBlur=16;ctx.strokeRect(-15,-15,30,30);ctx.fillStyle='#fff6b6';ctx.font='bold 13px sans-serif';ctx.fillText('E 修復',-25,-25);ctx.restore(); }
     if (FEATURES.collectibles) for (const s of shards) if(!s.taken) { const pulse=FEATURES.orbPulse?1+Math.sin(performance.now()/180+s.x)*.12:1;ctx.save(); ctx.translate(s.x,s.y+Math.sin(performance.now()/230+s.x)*7);ctx.scale(pulse,pulse); ctx.shadowColor='#55eaff';ctx.shadowBlur=22; drawImagePart(images.orb,1075,515,190,230,-26,-30,52,64);ctx.restore(); }
     const spriteState = !player.grounded ? 2 : Math.abs(player.vx)>2 ? 1 : 0;
-    ctx.save(); ctx.translate(player.x+player.w/2,player.y); if(player.facing<0)ctx.scale(-1,1); if(player.attack > 0) { const elapsed=.34-player.attack; const attackFrame=elapsed<.11?0:elapsed<.23?1:2; const frames=[[18,70,590,570,-52,-6,104,101],[610,90,830,535,-67,-1,146,96],[1450,90,690,535,-53,-1,112,96]][attackFrame]; drawImagePart(images.attack,...frames); } else if(player.groundDash > 0) { const frame=Math.min(4,Math.floor((.30-player.groundDash)/.06)); const frameWidth=images.groundDash.width/5; drawImagePart(images.groundDash,frame*frameWidth,205,frameWidth,560,-58,0,116,108); } else if(spriteState===1) { const frame=Math.floor(player.walkClock)%5; const frameWidth=images.walk.width/5; drawImagePart(images.walk,frame*frameWidth,70,frameWidth,650,-50,-2,100,112); } else drawImagePart(images.sprites,[60,650,1240][spriteState],145,530,730,-42,0,84,108);ctx.restore();
+    ctx.save(); ctx.translate(player.x+player.w/2,player.y); if(player.facing<0)ctx.scale(-1,1); if(player.attack > 0) { const elapsed=.34-player.attack; const attackFrame=elapsed<.11?0:elapsed<.23?1:2; const frames=[[18,70,590,570,-52,-6,104,101],[610,90,830,535,-67,-1,146,96],[1450,90,690,535,-53,-1,112,96]][attackFrame]; drawImagePart(images.attack,...frames); } else if(player.groundDash > 0) { const frame=Math.min(4,Math.floor((.30-player.groundDash)/.06)); const frameWidth=images.groundDash.width/5; drawImagePart(images.groundDash,frame*frameWidth,200,frameWidth,470,-52,0,104,108); } else if(spriteState===1) { const frame=Math.floor(player.walkClock)%5; const frameWidth=images.walk.width/5; drawImagePart(images.walk,frame*frameWidth,100,frameWidth,550,-45,0,90,108); } else drawImagePart(images.sprites,[60,650,1240][spriteState],145,530,730,-42,0,84,108);ctx.restore();
     const pieceY = player.y - 34 + Math.sin(performance.now()/220)*7; ctx.save();ctx.translate(player.x-16,pieceY);ctx.shadowColor='#b9f8ff';ctx.shadowBlur=16;drawImagePart(images.pieceSlime,130,150,580,620,-22,-22,45,50);ctx.restore();
     const guide=currentGuide(); const guidePlatform=guide && platforms[Math.max(1,Math.floor(platforms.length*.45))];
     if(guide && guidePlatform) { const gy=guidePlatform.y-20-56+Math.sin(performance.now()/230)*6; ctx.save();ctx.translate(guidePlatform.x+guidePlatform.w/2,gy);ctx.shadowColor=guide.color;ctx.shadowBlur=20;drawImagePart(images.pieceSlime,130,150,580,620,-24,-24,48,54);ctx.globalCompositeOperation='source-atop';ctx.globalAlpha=.58;ctx.fillStyle=guide.color;ctx.fillRect(-28,-28,56,62);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.fillStyle='#f7fbff';ctx.textAlign='center';ctx.font='bold 12px sans-serif';ctx.fillText(guide.name,0,-35);ctx.textAlign='start';ctx.restore(); }
