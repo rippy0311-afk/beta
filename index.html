@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beta — 欠けた世界の少年</title>
+    <link rel="stylesheet" href="style.css?v=11" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <section class="game-frame" aria-label="Beta ゲーム画面">
+        <canvas id="game" width="1280" height="720" aria-label="Beta 横スクロールゲーム"></canvas>
+        <div class="hud" id="hud">
+          <div><div class="brand"><span class="brand-mark">◇</span><span>BETA</span></div><small class="chapter-label">ACT I　CHAPTER 1 / 20<br /><span id="segmentLabel">STAGE 1 / 13　はじまりの足場島 ― スプリント航路</span></small></div>
+          <div class="shard-count" id="shardCount" aria-label="欠片">◇◇◇</div>
+          <div class="completion"><span>世界の完成度　 <strong id="runTimer">00:00.00</strong></span><strong id="completionValue">0%</strong><i><b id="completionBar"></b></i></div>
+        </div>
+        <div class="complete-gauge" id="completeGauge"><span>BETA</span><i><b id="completeBar"></b></i><strong>COMPLETE</strong></div>
+        <div class="autosave-indicator" id="autosaveIndicator" hidden role="status" aria-live="polite"><i></i><span>AUTOSAVE</span></div>
+        <div class="dialogue" id="dialogue"><p id="dialogueText"></p><span class="toast-countdown" id="toastCountdown" hidden></span><button id="closeDialogue" aria-label="会話を閉じる">Space / Esc</button></div>
+        <div class="start-screen" id="startScreen">
+          <p class="small-title">途中で止まった世界を、少しずつ完成させよう。</p>
+          <h1>BETA</h1>
+          <p>← → / A D：移動　　Space：ジャンプ　　Z：攻撃　　E：修復</p>
+          <button id="startButton">はじめる</button>
+        </div>
+        <section class="developer-panel" id="developerPanel" hidden aria-label="開発者パネル">
+          <header><span>DEVELOPER TOOLS</span><button id="closeDeveloper" aria-label="開発者パネルを閉じる">×</button></header>
+          <p>F2で開閉・数値変更はすぐに反映されます。</p>
+          <div class="dev-grid">
+            <label>移動速度<input id="devSpeed" type="number" min="40" max="1200" step="10" /></label>
+            <label>ジャンプ力<input id="devJump" type="number" min="100" max="1600" step="10" /></label>
+            <label>重力<input id="devGravity" type="number" min="0" max="4000" step="50" /></label>
+            <label>チェックポイント<select id="devCheckpoint"></select></label>
+            <label>所持オーブ<input id="devOrbs" type="number" min="0" step="1" /></label>
+            <label>X座標<input id="devX" type="number" step="10" /></label>
+            <label>Y座標<input id="devY" type="number" step="10" /></label>
+          </div>
+          <div class="dev-actions"><button id="devTeleport">この座標へ移動</button><button id="devCheckpointMove">チェックポイントへ移動</button><button id="devSetOrbs">オーブ数を反映</button><button id="devFloat">浮遊：OFF</button></div>
+          <p class="dev-ability-note">能力システム用のフラグ（土台）を準備済み：ダッシュ / 二段ジャンプ / 滑空</p>
+        </section>
+        <section class="course-select" id="courseSelect" hidden aria-label="コース選択">
+          <header><div><p>ARCEA ROUTE</p><h2>コース選択</h2></div><button id="courseToTitle">タイトルへ</button></header>
+          <p class="course-instruction" id="courseMessage">進むコースを選んでください。</p>
+          <div class="course-map" aria-label="アルケアの航路マップ">
+            <svg class="course-route" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <path data-step="1" d="M10 95 L22 81"/><path data-step="2" d="M22 81 L28 72"/><path data-step="3" d="M28 72 L39 70"/>
+              <path data-step="4" d="M39 70 L50 56"/><path data-step="5" d="M50 56 L57 30"/><path data-step="6" d="M57 30 L43 34"/>
+              <path data-step="7" d="M43 34 L67 23"/><path data-step="8" d="M67 23 L79 17"/><path data-step="9" d="M79 17 L93 7"/>
+              <path data-step="10" d="M93 7 L72 43"/><path data-step="11" d="M72 43 L62 54"/><path data-step="12" d="M62 54 L35 53"/>
+            </svg>
+            <button class="course-node" data-course="1" style="left:10%;top:95%"><b>1</b><span>はじまりの足場島</span></button>
+            <button class="course-node" data-course="2" style="left:22%;top:81%"><b>2</b><span>雲裂きの工区</span></button>
+            <button class="course-node" data-course="3" style="left:28%;top:72%"><b>3</b></button>
+            <button class="course-node" data-course="4" style="left:39%;top:70%"><b>4</b></button>
+            <button class="course-node" data-course="5" style="left:50%;top:56%"><b>5</b></button>
+            <button class="course-node" data-course="6" style="left:57%;top:30%"><b>6</b></button>
+            <button class="course-node" data-course="7" style="left:43%;top:34%"><b>7</b></button>
+            <button class="course-node" data-course="8" style="left:67%;top:23%"><b>8</b></button>
+            <button class="course-node" data-course="9" style="left:79%;top:17%"><b>9</b></button>
+            <button class="course-node" data-course="10" style="left:93%;top:7%"><b>10</b></button>
+            <button class="course-node" data-course="11" style="left:72%;top:43%"><b>11</b></button>
+            <button class="course-node" data-course="12" style="left:62%;top:54%"><b>12</b></button>
+            <button class="course-node" data-course="13" style="left:35%;top:53%"><b>13</b></button>
+          </div>
+          <footer>◆ クリア済み　◇ 次のコース　▣ 未解放</footer>
+        </section>
+        <section class="stage-clear" id="stageClear" hidden aria-label="ステージクリア">
+          <div class="clear-window" role="dialog" aria-modal="true" aria-labelledby="clearTitle">
+            <p>ACT I ・ STAGE 1 / 13</p>
+            <h2 id="clearTitle">STAGE CLEAR</h2>
+            <div class="clear-stats">
+              <span>クリアタイム <strong id="clearTime">00:00.00</strong></span>
+              <span>回収した欠片 <strong id="clearShards">0 / 14</strong></span>
+              <span>修復した足場 <strong id="clearRepairs">0 / 2</strong></span>
+            </div>
+            <p class="clear-message">浮島航路を渡り切った。次の島が、雲の向こうで待っている。</p>
+            <button class="menu-action primary" id="retryStage">もう一度挑戦</button>
+            <button class="menu-action" id="returnToTitle">タイトルへ戻る</button>
+          </div>
+        </section>
+        <section class="pause-menu" id="pauseMenu" hidden aria-label="ポーズメニュー">
+          <div class="pause-window" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+            <header><p>PAUSE MENU</p><h2 id="pauseTitle">BETA</h2><span>ESCで戻る</span></header>
+            <nav class="pause-nav" aria-label="メニュー項目">
+              <button class="menu-tab is-active" data-panel="game">ゲーム</button>
+              <button class="menu-tab" data-panel="settings">設定</button>
+              <button class="menu-tab" id="saveTab" data-panel="saves" hidden>セーブ</button>
+              <button class="menu-tab" data-panel="controls">操作</button>
+            </nav>
+            <div class="menu-panels">
+              <div class="menu-panel is-active" data-content="game">
+                <h3>休憩中</h3><p>世界はあなたが動き出すのを待っています。</p>
+                <button class="menu-action primary" id="resumeGame">冒険を再開</button>
+                <button class="menu-action" id="restartGame">最初からやり直す</button>
+                <button class="menu-action" id="exitStage">コース選択へ（このステージの進行を破棄）</button>
+              </div>
+              <div class="menu-panel" data-content="settings">
+                <h3>設定</h3>
+                <label class="range-row"><span>音量</span><input id="volumeControl" type="range" min="0" max="100" value="70" /><output id="volumeValue">70%</output></label>
+                <p class="setting-note">音響機能は今後の更新で実装予定です。</p>
+                <button class="menu-action" id="resetSettings">音量とキーを初期設定へ戻す</button>
+                <p id="settingsStatus" role="status" aria-live="polite"></p>
+              </div>
+              <div class="menu-panel" data-content="saves">
+                <h3>ローカルセーブ</h3>
+                <p class="key-help">チェックポイント到達時に最新の進行を自動保存します。起動時はコース選択から始まり、保存中のコースを選ぶと自動で再開します。</p>
+                <div id="saveSlots"></div>
+                <p id="saveStatus" role="status" aria-live="polite"></p>
+              </div>
+              <div class="menu-panel" data-content="controls">
+                <h3>操作</h3>
+                <p class="key-help" id="keyConfigHint">変更したい項目を選んでください。</p>
+                <div class="key-config" aria-label="キーコンフィグ">
+                  <div><span>左へ移動</span><button class="key-bind" data-action="left" id="key-left">←</button></div>
+                  <div><span>右へ移動</span><button class="key-bind" data-action="right" id="key-right">→</button></div>
+                  <div><span>ジャンプ</span><button class="key-bind" data-action="jump" id="key-jump">Space</button></div>
+                  <div><span>攻撃</span><button class="key-bind" data-action="attack" id="key-attack">Z</button></div>
+                  <div><span>修復</span><button class="key-bind" data-action="repair" id="key-repair">E</button></div>
+                  <div><span>メニュー</span><button class="key-bind" data-action="menu" id="key-menu">Esc</button></div>
+                </div>
+                <button class="menu-action" id="resetKeys">初期キーへ戻す</button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <div class="mobile-controls" id="mobileControls">
+          <button data-key="left" aria-label="左へ移動">←</button><button data-key="right" aria-label="右へ移動">→</button><button data-key="jump" aria-label="ジャンプ">↑</button><button data-key="attack" aria-label="攻撃">⚔</button>
+        </div>
+      </section>
+      <aside class="feature-panel">
+        <p>開発者メモ</p>
+        <h2>機能スイッチ式の土台</h2>
+        <code>config.js</code> の <code>true / false</code> を変えるだけで、各機能をオン・オフできます。
+      </aside>
+    </main>
+    <script src="config.js?v=7"></script>
+    <script src="game.js?v=26"></script>
+  </body>
+</html>
