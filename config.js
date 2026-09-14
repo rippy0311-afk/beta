@@ -41,6 +41,16 @@ const FEATURES = Object.freeze({
   repairPulse: true,
   gateSparkles: true,
   dangerVignette: true,
+  coyoteJump: true,
+  jumpBuffer: true,
+  variableJump: true,
+  attackLunge: true,
+  hitStop: true,
+  orbTrail: true,
+  repairDust: true,
+  goalBeacon: true,
+  groundDashReadyHint: true,
+  cameraLookAhead: true,
 });
 
 const GAME_CONFIG = Object.freeze({
