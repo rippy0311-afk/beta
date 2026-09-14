@@ -67,7 +67,7 @@
   const abilityLevels = { airDash: 1 };
   const images = { background: new Image(), terrain: new Image(), repairBefore:new Image(), repairAfter:new Image(), orb: new Image(), sprites: new Image(), walk: new Image(), groundDash: new Image(), enemy: new Image(), attack: new Image(), pieceSlime: new Image() };
   images.background.src = 'assets/Background/Chapter1/stage-01-background.png';
-  images.terrain.src = 'assets/Stages/Chapter1/stage-01-platform.png';
+  images.terrain.src = 'assets/stages/Chapter1/stage-01-platform.png';
   // オーブは基礎足場のシートではなく、専用の結晶が入った素材シートから描画する。
   images.orb.src = 'assets/terrain-assets.png';
   images.sprites.src = 'assets/ren-sprites.png';
@@ -106,7 +106,7 @@
   const courseMarkers = [[540,480],[845,410],[1450,420],[1740,350],[2350,380],[2950,400],[3590,385],[4170,350],[4830,390],[5100,330],[5760,340],[6050,270],[6990,370],[7280,300],[7950,450],[8580,300]];
   const courseOneMarkers = courseMarkers.map(point=>[...point]);
   const courseNames=['はじまりの足場島','雲裂きの工区','宙吊りの回廊','崩れた採掘路','風切りの縦坑','月光の結晶庭','夜渡りの連橋','風化した尖塔','氷雲の足場','熔岩雲の抜け道','落下遺跡の航路','星喰いの外縁','Chapter 1 最終工区'];
-  const stageAsset = (stage, kind) => `assets/Stages/Chapter1/${kind.replace('{stage}',String(stage).padStart(2,'0'))}`;
+  const stageAsset = (stage, kind) => `assets/stages/Chapter1/${kind.replace('{stage}',String(stage).padStart(2,'0'))}`;
   const stageBackgroundAsset = (stage) => `assets/Background/Chapter1/stage-${String(stage).padStart(2,'0')}-background.png`;
   const abilityGuides = [
     { course:3, name:'Astra', color:'#b777ff', ability:'能力の星図を案内する' },
