@@ -82,8 +82,8 @@
   images.restoredResident.src = 'assets/narrative/restored-resident.png';
   images.memoryFragment.src = 'assets/narrative/memory-fragment.png';
 
-  const world = { camera: 0, backgroundOffset: 0, started: !FEATURES.titleScreen, completed: 0, complete: 0, messageShown: false, particles: [], afterimages:[], repairWaves:[], attackFlash:0, gateExit:0, gateExitParticles:[], hitStop:0, temporaryPlatforms:[], footsteps:[], history:[], thrownOrbs:[], bellWaves:[], gravityDirection:1, timeShifted:false, todoTimer:0, lastGround:null, narrative:null, fragmentTaken:false, residentSpoken:false, signShown:false, idleLoreShown:false, idleTime:0, mapOpen:false, boundaryMode:false, boundarySeen:false, boundaryPlatforms:[], menuOpen: false, controlGuide:false, developerOpen: false, courseSelect: false, clearedCourses: 0, currentCourse: 1, floating: false, stageClear: false, gateHintShown: false, guideSeen: false, repaired: 0, time: 0, checkpointIndex: 0, dialogueOpen: false, toastTimer: null, toastCountdownTimer: null, toastEndsAt: 0, autoSaveTimer: null, combo: 0, comboTimer: 0, stageBanner: 0, stageTipShown: false, stats:{orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0} };
-  const player = { x: 110, y: 450, w: 46, h: 74, vx: 0, vy: 0, grounded: false, facing: 1, walkClock: 0, groundDash: 0, dashCooldown: 0, invulnerable: 0, attack: 0, attackCooldown: 0, airDashAvailable: false, airDash: 0, coyote:0, jumpBuffer:0, orbCharges:0, lastFootstepCell:null, copiedWispCharges:0, copiedWispTimer:0 };
+  const world = { camera: 0, backgroundOffset: 0, started: !FEATURES.titleScreen, completed: 0, complete: 0, messageShown: false, particles: [], afterimages:[], repairWaves:[], attackFlash:0, gateExit:0, gateExitParticles:[], hitStop:0, temporaryPlatforms:[], footsteps:[], history:[], thrownOrbs:[], bellWaves:[], gravityDirection:1, timeShifted:false, todoTimer:0, lastGround:null, narrative:null, fragmentTaken:false, residentSpoken:false, signShown:false, idleLoreShown:false, idleTime:0, mapOpen:false, boundaryMode:false, boundarySeen:false, boundaryPlatforms:[], repairCombo:0, repairComboTimer:0, recoveryGlow:0, groundPound:0, menuOpen: false, controlGuide:false, developerOpen: false, courseSelect: false, clearedCourses: 0, currentCourse: 1, floating: false, stageClear: false, gateHintShown: false, guideSeen: false, repaired: 0, time: 0, checkpointIndex: 0, dialogueOpen: false, toastTimer: null, toastCountdownTimer: null, toastEndsAt: 0, autoSaveTimer: null, combo: 0, comboTimer: 0, stageBanner: 0, stageTipShown: false, stats:{orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0} };
+  const player = { x: 110, y: 450, w: 46, h: 74, vx: 0, vy: 0, grounded: false, facing: 1, walkClock: 0, groundDash: 0, dashCooldown: 0, invulnerable: 0, attack: 0, attackCooldown: 0, airDashAvailable: false, airDash: 0, coyote:0, jumpBuffer:0, orbCharges:0, lastFootstepCell:null, copiedWispCharges:0, copiedWispTimer:0, charging:0, chargeReady:false };
   // 速度を維持しながら渡る、長い浮島スプリント航路。着地点と次の目印を常に画面内に置く。
   const platforms = [
     ['start',0,580,440,60], ['p01',510,530,230,50], ['bridge-a',800,470,190,50], ['p02',1060,540,270,60],
@@ -325,7 +325,7 @@
   function showCourseSelect(message='次の行き先を選んでください。') { setDeveloper(false); setControlGuide(false); world.courseSelect=true; world.menuOpen=false; $('#pauseMenu').hidden=true; closeDialogue(); $('#courseSelect').hidden=false; renderCourseMap(); $('#courseMessage').textContent=message; }
   function openCourseSelect() { world.clearedCourses=Math.max(world.clearedCourses,world.currentCourse); persistWorldProgress(); showCourseSelect(world.currentCourse===13?'CHAPTER 1 COMPLETE！ アルケアの航路がひとつ完成した。':'次の行き先を選んでください。'); }
   function closeCourseSelect() { world.courseSelect=false; $('#courseSelect').hidden=true; }
-  function resetGame() { world.camera=0; world.backgroundOffset=0; world.time=0; world.checkpointIndex=0; world.completed=0; world.complete=0; world.repaired=0; world.combo=0; world.comboTimer=0; world.hitStop=0; world.temporaryPlatforms=[]; world.footsteps=[]; world.history=[]; world.thrownOrbs=[]; world.bellWaves=[]; world.gravityDirection=1; world.timeShifted=false; world.todoTimer=0; world.lastGround=null; world.stats={orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0}; world.stageTipShown=false; world.messageShown=false; world.gateHintShown=false; world.guideSeen=false; world.particles=[]; world.afterimages=[]; world.repairWaves=[]; world.attackFlash=0; world.gateExit=0; world.gateExitParticles=[]; world.stageClear=false; world.courseSelect=false; world.floating=false; setControlGuide(false); $('#devFloat').textContent='浮遊：OFF'; $('#stageClear').hidden=true; $('#courseSelect').hidden=true; const start=checkpoints[0],startPlatform=platforms.find(p=>p.id===start.platformId); player.x=start.x; player.y=(startPlatform?.y||520)-20-player.h; player.vx=0; player.vy=0; player.attack=0; player.attackCooldown=0; player.groundDash=0; player.dashCooldown=0; player.airDash=0; player.airDashAvailable=abilities.airDash; player.coyote=0; player.jumpBuffer=0; player.orbCharges=0; player.lastFootstepCell=null; player.invulnerable=0; shards.forEach(s=>s.taken=false); repairPoints.forEach(p=>{p.repaired=false;p.promptShown=false;}); platforms.forEach(p=>p.active=p.defaultActive ?? !['bridge-a','bridge-b'].includes(p.id)); checkpoints.forEach((p,i)=>p.active=i===0); enemies.forEach(e=>{e.alive=true;e.purified=false;}); $('#completeBar').style.width='0%'; updateHud(); $('#runTimer').textContent='00:00.00'; setMenu(false); showDialogue(abilities.airDash?'ピース「Air Dashが使えるよ！ 空中で X を押して、向いている方向へ飛ぼう。」':GAME_CONFIG.initialDialogue); }
+  function resetGame() { world.camera=0; world.backgroundOffset=0; world.time=0; world.checkpointIndex=0; world.completed=0; world.complete=0; world.repaired=0; world.combo=0; world.comboTimer=0; world.repairCombo=0; world.repairComboTimer=0; world.recoveryGlow=0; world.groundPound=0; world.hitStop=0; world.temporaryPlatforms=[]; world.footsteps=[]; world.history=[]; world.thrownOrbs=[]; world.bellWaves=[]; world.gravityDirection=1; world.timeShifted=false; world.todoTimer=0; world.lastGround=null; world.stats={orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0}; world.stageTipShown=false; world.messageShown=false; world.gateHintShown=false; world.guideSeen=false; world.particles=[]; world.afterimages=[]; world.repairWaves=[]; world.attackFlash=0; world.gateExit=0; world.gateExitParticles=[]; world.stageClear=false; world.courseSelect=false; world.floating=false; setControlGuide(false); $('#devFloat').textContent='浮遊：OFF'; $('#stageClear').hidden=true; $('#courseSelect').hidden=true; const start=checkpoints[0],startPlatform=platforms.find(p=>p.id===start.platformId); player.x=start.x; player.y=(startPlatform?.y||520)-20-player.h; player.vx=0; player.vy=0; player.attack=0; player.attackCooldown=0; player.groundDash=0; player.dashCooldown=0; player.airDash=0; player.airDashAvailable=abilities.airDash; player.coyote=0; player.jumpBuffer=0; player.orbCharges=0; player.lastFootstepCell=null; player.charging=0; player.chargeReady=false; player.invulnerable=0; shards.forEach(s=>s.taken=false); repairPoints.forEach(p=>{p.repaired=false;p.promptShown=false;}); platforms.forEach(p=>p.active=p.defaultActive ?? !['bridge-a','bridge-b'].includes(p.id)); checkpoints.forEach((p,i)=>p.active=i===0); enemies.forEach(e=>{e.alive=true;e.purified=false;e.stun=0;}); $('#completeBar').style.width='0%'; updateHud(); $('#runTimer').textContent='00:00.00'; setMenu(false); showDialogue(abilities.airDash?'ピース「Air Dashが使えるよ！ 空中で X を押して、向いている方向へ飛ぼう。」':GAME_CONFIG.initialDialogue); }
   $('#resumeGame').onclick = () => setMenu(false); $('#restartGame').onclick = resetGame;
   $('#exitStage').onclick = () => {
     // 退出は現在のステージ用オートセーブだけを削除し、解放済みコースの記録は残す。
@@ -453,6 +453,9 @@
     if (world.controlGuide && e.code === 'Escape') { e.preventDefault(); setControlGuide(false); return; }
     if (e.code === 'F2' && FEATURES.developerTools) { e.preventDefault(); setDeveloper(!world.developerOpen); return; }
     if (!e.repeat && world.started && !world.menuOpen && !world.courseSelect && !world.stageClear) {
+      if (e.code==='KeyB' && FEATURES.checkpointRecall) { e.preventDefault(); respawn(); showToast('ピース「最後のチェックポイントへ戻った。」'); return; }
+      if (e.code==='KeyF' && FEATURES.groundPound && !player.grounded) { e.preventDefault(); world.groundPound=.45; player.vy=1050; showToast('ピース「急降下！」'); return; }
+      if (e.code==='KeyG' && FEATURES.chargeAttack && player.attackCooldown<=0) { e.preventDefault(); strike(2); world.attackFlash=.34; showToast('ピース「ため攻撃！」'); return; }
       if (e.code==='KeyM' && FEATURES.handDrawnMap) { e.preventDefault(); world.mapOpen=!world.mapOpen; showToast(world.mapOpen?'ピース「歩いた道を地図に描いたよ。」':'ピース「地図を閉じた。」'); return; }
       if (e.code==='KeyV' && FEATURES.enemyAbilityCopy && player.copiedWispCharges>0 && player.copiedWispTimer<=0) { e.preventDefault(); player.copiedWispCharges--; player.copiedWispTimer=6; showToast('ピース「コピーした風で、ゆっくり落ちる！」'); return; }
       if (e.code==='KeyQ' && FEATURES.rewind) { e.preventDefault(); rewindPlayer(); return; }
@@ -465,7 +468,7 @@
     if (e.code === bindings.menu) { setMenu(!world.menuOpen); return; }
     keys.add(e.code); if (e.code === bindings.jump && !world.started) $('#startButton').click();
   });
-  addEventListener('keyup', (e) => { keys.delete(e.code); if (FEATURES.variableJump && e.code===bindings.jump && player.vy < -220) player.vy *= .52; });
+  addEventListener('keyup', (e) => { keys.delete(e.code); if (FEATURES.variableJump && e.code===bindings.jump && player.vy < -220) player.vy *= .52; if(FEATURES.chargeAttack && e.code===bindings.attack && player.charging>.28){player.chargeReady=true; player.charging=0; showToast('ピース「ため攻撃の準備完了！」');}else if(e.code===bindings.attack)player.charging=0; });
   document.querySelectorAll('[data-key]').forEach((button) => {
     const key = button.dataset.key; button.addEventListener('pointerdown', () => keys.add(key)); button.addEventListener('pointerup', () => keys.delete(key)); button.addEventListener('pointerleave', () => keys.delete(key));
   });
@@ -534,7 +537,7 @@
     if(FEATURES.idleLore) { world.idleTime=Math.abs(player.vx)<5 ? world.idleTime+dt : 0; if(world.idleTime>5 && !world.idleLoreShown) { world.idleLoreShown=true; showToast(`ピース「${story.memory}」`); } }
   }
   function addComplete(value) { world.complete=Math.min(100,world.complete+value); $('#completeBar').style.width=`${world.complete}%`; }
-  function collect(shard) { shard.taken = true; world.completed++; world.stats.orbs++; player.orbCharges++; addComplete(10); if (FEATURES.particles) for (let i=0;i<16;i++) world.particles.push({x:shard.x,y:shard.y,vx:(Math.random()-.5)*240,vy:(Math.random()-.8)*250,life:1}); if(FEATURES.orbTrail) for(let i=0;i<10;i++) world.particles.push({x:shard.x,y:shard.y,vx:(Math.random()-.5)*160,vy:-40-Math.random()*170,life:.45,color:'#8cf7ff'}); updateHud(); }
+  function collect(shard) { shard.taken = true; world.completed++; world.stats.orbs++; player.orbCharges++; if(FEATURES.dashRefillOnOrb && !player.grounded){player.airDashAvailable=abilities.airDash;showToast('ピース「オーブでAir Dashが戻った！」');} addComplete(10); if (FEATURES.particles) for (let i=0;i<16;i++) world.particles.push({x:shard.x,y:shard.y,vx:(Math.random()-.5)*240,vy:(Math.random()-.8)*250,life:1}); if(FEATURES.orbTrail) for(let i=0;i<10;i++) world.particles.push({x:shard.x,y:shard.y,vx:(Math.random()-.5)*160,vy:-40-Math.random()*170,life:.45,color:'#8cf7ff'}); updateHud(); }
   function saveCheckpoint() {
     if (!FEATURES.autoSave || !FEATURES.saveData) return;
     const slotIndex=activeSaveSlot ?? 0;
@@ -543,9 +546,9 @@
     try { localStorage.setItem(SLOT_KEYS[slotIndex],JSON.stringify(data)); activeSaveSlot=slotIndex; renderSlots(); showAutoSaveIndicator(); }
     catch { /* ゲーム進行は止めず、セーブ画面で状態を確認できるようにする。 */ }
   }
-  function repair() { const target=FEATURES.enemyPurification && enemies.find(enemy=>enemy.alive && Math.hypot(enemy.x+enemy.w/2-(player.x+player.w/2),enemy.y+enemy.h/2-(player.y+player.h/2))<88); if(target){if(purgeEnemy(target)){grantWispWind();}return;} const point=repairPoints.find(p=>!p.repaired && Math.abs((player.x+player.w/2)-p.x)<80 && Math.abs((player.y+player.h)-p.y)<100); if(!point)return; const firstRepair=world.currentCourse===1 && world.repaired===0; point.repaired=true; world.repaired++; world.stats.repairs++; const bridge=platforms.find(p=>p.id===point.platformId); if(bridge)bridge.active=true; addComplete(24); if(FEATURES.repairPulse)world.repairWaves.push({x:point.x,y:point.y,life:.7}); for(let i=0;i<26;i++)world.particles.push({x:point.x,y:point.y,vx:(Math.random()-.5)*300,vy:(Math.random()-.9)*330,life:.85,color:'#f7f6b2'}); if(FEATURES.repairDust) for(let i=0;i<18;i++)world.particles.push({x:point.x+(Math.random()-.5)*165,y:point.y+22,vx:(Math.random()-.5)*190,vy:-30-Math.random()*115,life:.65,color:'#e6d7ab'}); showToast(world.currentCourse===1 ? (firstRepair?'ピース「うわー！直った！よかった～」':'ピース「これも直った！よかった。」') : `ピース「${point.hint}を直したよ。」`); updateHud(); }
+  function repair() { const target=FEATURES.enemyPurification && enemies.find(enemy=>enemy.alive && Math.hypot(enemy.x+enemy.w/2-(player.x+player.w/2),enemy.y+enemy.h/2-(player.y+player.h/2))<88); if(target){if(purgeEnemy(target)){grantWispWind();}return;} const point=repairPoints.find(p=>!p.repaired && Math.abs((player.x+player.w/2)-p.x)<80 && Math.abs((player.y+player.h)-p.y)<100); if(!point)return; const firstRepair=world.currentCourse===1 && world.repaired===0; point.repaired=true; world.repaired++; world.stats.repairs++; if(FEATURES.repairCombo){world.repairCombo=world.repairComboTimer>0?world.repairCombo+1:1;world.repairComboTimer=7;} if(FEATURES.recoveryGlow)world.recoveryGlow=1.1; const bridge=platforms.find(p=>p.id===point.platformId); if(bridge)bridge.active=true; addComplete(24+(FEATURES.repairCombo?Math.min(8,world.repairCombo*2):0)); if(FEATURES.repairPulse)world.repairWaves.push({x:point.x,y:point.y,life:.7}); for(let i=0;i<26;i++)world.particles.push({x:point.x,y:point.y,vx:(Math.random()-.5)*300,vy:(Math.random()-.9)*330,life:.85,color:'#f7f6b2'}); if(FEATURES.repairDust) for(let i=0;i<18;i++)world.particles.push({x:point.x+(Math.random()-.5)*165,y:point.y+22,vx:(Math.random()-.5)*190,vy:-30-Math.random()*115,life:.65,color:'#e6d7ab'}); showToast(world.currentCourse===1 ? (firstRepair?'ピース「うわー！直った！よかった～」':'ピース「これも直った！よかった。」') : `ピース「${point.hint}を直したよ。」`); updateHud(); }
   function respawn() { const point=checkpoints[world.checkpointIndex]; const platform=platforms.find(p=>p.id===point.platformId); player.x=point.x; player.y=platform ? platform.y-20-player.h : 430; player.vx=0; player.vy=0; player.invulnerable=1.1; }
-  function strike() {
+  function strike(power=1) {
     player.attack = .34; player.attackCooldown = .40; world.stats.attacks++;
     if(FEATURES.attackLunge && player.grounded) player.vx += player.facing*115;
     if(FEATURES.attackArc) world.attackFlash=.16;
@@ -554,7 +557,7 @@
       player.vy = Math.min(player.vy, -180);
       player.vx += player.facing * 70;
     }
-    const hitbox = { x: player.facing > 0 ? player.x + player.w - 3 : player.x - 96, y: player.y + 10, w: 98, h: 54 };
+    const reach=power>1?164:98; const hitbox = { x: player.facing > 0 ? player.x + player.w - 3 : player.x-reach+2, y: player.y + 10, w: reach, h: 54 };
     for (const enemy of enemies) if (enemy.alive && rect(hitbox, enemy)) {
       enemy.alive = false; world.stats.enemies++; addComplete(8); if(FEATURES.hitStop)world.hitStop=.055;
       if (FEATURES.comboMeter) { world.combo++; world.comboTimer=2.6; }
@@ -621,7 +624,7 @@
       showToast(world.repaired===0?'ピース「あれ？なんで壊れてるんだろう？」':'ピース「あれ？ここも壊れてる。」');
     }
     if (input('repair')) { repair(); keys.delete(bindings.repair); }
-    const copiedGlide=player.copiedWispTimer>0 ? .48 : 1;
+    const copiedGlide=(player.copiedWispTimer>0 || (FEATURES.windCatch && keys.has('KeyW') && player.vy>80)) ? .48 : 1;
     const gravity=world.gravityDirection*tuning.gravity*mechanic('gravityMultiplier')*copiedGlide;
     if (!world.floating) player.vy += gravity * dt; player.x += player.vx*(FEATURES.heightLayer && player.y<mechanic('heightLayerY')?mechanic('heightLayerSpeedMultiplier'):1)*dt; player.y += player.vy*dt; player.grounded=false;
     for (const p of surfaces()) { if(!p.active) continue;
@@ -632,6 +635,8 @@
       if(descending && player.x+player.w>px && player.x<px+p.w && (isOnTop||isOnBottom)) {
         const landingSpeed=Math.abs(player.vy); player.y=world.gravityDirection>0 ? surfaceY-player.h : py+p.h; player.vy=0; player.grounded=true; player.coyote=FEATURES.coyoteJump?.10:0; player.airDashAvailable=abilities.airDash; world.lastGround={x:player.x,y:player.y+player.h+20};
         if (FEATURES.landingDust && wasAirborne && landingSpeed>210) for(let i=0;i<8;i++)world.particles.push({x:player.x+player.w/2,y:surfaceY,vx:(Math.random()-.5)*140,vy:-Math.random()*90,life:.35,color:'#d8f6ff'});
+        if(FEATURES.perfectLanding && wasAirborne && landingSpeed>520){world.combo++;world.comboTimer=1.6;showToast('ピース「パーフェクト着地！」');}
+        if(FEATURES.groundPound && world.groundPound>0){for(const enemy of enemies)if(enemy.alive&&Math.abs(enemy.x-player.x)<150&&Math.abs(enemy.y-player.y)<100){enemy.stun=1.5;enemy.dir*=-1;}world.groundPound=0;}
       }
     }
     // 未回収オーブがある限り、ゲートは実体のある壁として行く手を止める。TODO消去中だけは短時間すり抜けられる。
@@ -641,9 +646,10 @@
     }
     if (player.y>750 || player.y<-130) { if(FEATURES.fallAssist && world.lastGround)addTemporaryPlatform(world.lastGround.x-50,world.lastGround.y,mechanic('fallAssistWidth'),22,mechanic('fallAssistLife'),'assist'); respawn(); }
     player.invulnerable = Math.max(0, player.invulnerable-dt);
-    player.attack = Math.max(0, player.attack-dt); player.groundDash = Math.max(0,player.groundDash-dt); player.dashCooldown = Math.max(0,player.dashCooldown-dt); player.airDash = Math.max(0,player.airDash-dt); player.attackCooldown = Math.max(0, player.attackCooldown-dt); player.copiedWispTimer=Math.max(0,(player.copiedWispTimer||0)-dt);
+    player.attack = Math.max(0, player.attack-dt); player.groundDash = Math.max(0,player.groundDash-dt); player.dashCooldown = Math.max(0,player.dashCooldown-dt); player.airDash = Math.max(0,player.airDash-dt); player.attackCooldown = Math.max(0, player.attackCooldown-dt); player.copiedWispTimer=Math.max(0,(player.copiedWispTimer||0)-dt); world.repairComboTimer=Math.max(0,world.repairComboTimer-dt); if(!world.repairComboTimer)world.repairCombo=0; world.recoveryGlow=Math.max(0,world.recoveryGlow-dt); world.groundPound=Math.max(0,world.groundPound-dt);
     for (const enemy of enemies) {
       if (!enemy.alive) continue;
+      enemy.stun=Math.max(0,(enemy.stun||0)-dt); if(FEATURES.enemyStun && enemy.stun>0) continue;
       const beat=FEATURES.rhythmPatrol ? .55+Math.abs(Math.sin(world.time*mechanic('rhythmPlatformSpeed')+enemy.phase))*.9 : 1;
       enemy.x += enemy.speed * enemy.dir * dt * beat * (world.timeShifted ? mechanic('timeShiftEnemyRate') : 1);
       if (enemy.x < enemy.min || enemy.x > enemy.max) { enemy.dir *= -1; enemy.x = Math.max(enemy.min, Math.min(enemy.max, enemy.x)); }
@@ -651,7 +657,7 @@
       enemy.vy=(enemy.vy||0)+tuning.gravity*dt; enemy.y+=enemy.vy*dt;
       for(const p of surfaces()) { const py=platformY(p),surfaceY=py-20,px=platformX(p); if(enemy.vy>=0 && enemy.x+enemy.w>px && enemy.x<px+p.w && enemy.y+enemy.h>=surfaceY && enemy.y+enemy.h-enemy.vy*dt<=surfaceY+14) { enemy.y=surfaceY-enemy.h; enemy.vy=0; break; } }
       if(enemy.y>760) { enemy.y=260; enemy.vy=0; }
-      if (!player.invulnerable && rect(player, { x: enemy.x, y: enemy.y, w: enemy.w, h: enemy.h })) respawn();
+      if (!player.invulnerable && rect(player, { x: enemy.x, y: enemy.y, w: enemy.w, h: enemy.h })) { if(FEATURES.orbShield && player.orbCharges>0){player.orbCharges--;player.invulnerable=1;showToast('ピース「オーブシールドが守ってくれた！」');}else respawn(); }
     }
     if (FEATURES.collectibles) for (const shard of shards) if (!shard.taken) {
       if (FEATURES.orbMagnet) {
@@ -780,6 +786,8 @@
     if (FEATURES.comboMeter && world.combo>1) { ctx.save();ctx.globalAlpha=Math.min(1,world.comboTimer);ctx.fillStyle='#fff09a';ctx.shadowColor='#ffb744';ctx.shadowBlur=12;ctx.font='bold 24px sans-serif';ctx.textAlign='center';ctx.fillText(`COMBO ×${world.combo}`,640,92);ctx.restore(); }
     if(FEATURES.groundDashReadyHint && player.grounded && player.dashCooldown<=0 && !world.menuOpen){ctx.save();ctx.globalAlpha=.72;ctx.fillStyle='#c5f7ff';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText('SHIFT  DASH READY',1160,54);ctx.restore();}
     if(FEATURES.enemyAbilityCopy && (player.copiedWispTimer>0 || player.copiedWispCharges>0)){ctx.save();ctx.fillStyle='#c8ffdd';ctx.shadowColor='#61f4a1';ctx.shadowBlur=10;ctx.font='800 11px sans-serif';ctx.textAlign='center';ctx.fillText(player.copiedWispTimer>0?`WISP WIND  ${player.copiedWispTimer.toFixed(1)}s`:`WISP WIND  V ×${player.copiedWispCharges}`,640,116);ctx.restore();}
+    if(FEATURES.recoveryGlow && world.recoveryGlow>0){ctx.save();ctx.globalAlpha=world.recoveryGlow*.45;ctx.fillStyle='#fff19a';ctx.fillRect(0,0,1280,720);ctx.restore();}
+    if(FEATURES.repairCombo && world.repairCombo>1){ctx.save();ctx.fillStyle='#fff0a1';ctx.font='800 12px sans-serif';ctx.textAlign='center';ctx.fillText(`REPAIR CHAIN ×${world.repairCombo}`,640,137);ctx.restore();}
     if (FEATURES.stageBanner && world.stageBanner>0) { world.stageBanner=Math.max(0,world.stageBanner-1/60);ctx.save();ctx.globalAlpha=Math.min(1,world.stageBanner*2);ctx.fillStyle='#eafcff';ctx.shadowColor='#45dfff';ctx.shadowBlur=18;ctx.font='bold 30px sans-serif';ctx.textAlign='center';ctx.fillText(`STAGE ${world.currentCourse}　${courseNames[world.currentCourse-1]}`,640,165);ctx.restore(); }
     ctx.fillStyle='#061024aa';ctx.fillRect(0,680,1280,40); if(FEATURES.debug){ctx.fillStyle='white';ctx.font='14px monospace';ctx.fillText(`x:${Math.round(player.x)}  shards:${world.completed}`,20,700);}
   }

@@ -81,6 +81,16 @@ const FEATURES = Object.freeze({
   handDrawnMap: true,
   enemyAbilityCopy: true,
   boundaryExpedition: true,
+  orbShield: true,
+  dashRefillOnOrb: true,
+  checkpointRecall: true,
+  groundPound: true,
+  repairCombo: true,
+  recoveryGlow: true,
+  perfectLanding: true,
+  enemyStun: true,
+  windCatch: true,
+  chargeAttack: true,
 });
 
 const GAME_CONFIG = Object.freeze({
