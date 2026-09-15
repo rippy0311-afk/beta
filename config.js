@@ -78,6 +78,9 @@ const FEATURES = Object.freeze({
   bridgeNames: true,
   alternateEnding: true,
   worldMemory: true,
+  handDrawnMap: true,
+  enemyAbilityCopy: true,
+  boundaryExpedition: true,
 });
 
 const GAME_CONFIG = Object.freeze({

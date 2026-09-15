@@ -82,8 +82,8 @@
   images.restoredResident.src = 'assets/narrative/restored-resident.png';
   images.memoryFragment.src = 'assets/narrative/memory-fragment.png';
 
-  const world = { camera: 0, backgroundOffset: 0, started: !FEATURES.titleScreen, completed: 0, complete: 0, messageShown: false, particles: [], afterimages:[], repairWaves:[], attackFlash:0, gateExit:0, gateExitParticles:[], hitStop:0, temporaryPlatforms:[], footsteps:[], history:[], thrownOrbs:[], bellWaves:[], gravityDirection:1, timeShifted:false, todoTimer:0, lastGround:null, narrative:null, fragmentTaken:false, residentSpoken:false, signShown:false, idleLoreShown:false, idleTime:0, menuOpen: false, controlGuide:false, developerOpen: false, courseSelect: false, clearedCourses: 0, currentCourse: 1, floating: false, stageClear: false, gateHintShown: false, guideSeen: false, repaired: 0, time: 0, checkpointIndex: 0, dialogueOpen: false, toastTimer: null, toastCountdownTimer: null, toastEndsAt: 0, autoSaveTimer: null, combo: 0, comboTimer: 0, stageBanner: 0, stageTipShown: false, stats:{orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0} };
-  const player = { x: 110, y: 450, w: 46, h: 74, vx: 0, vy: 0, grounded: false, facing: 1, walkClock: 0, groundDash: 0, dashCooldown: 0, invulnerable: 0, attack: 0, attackCooldown: 0, airDashAvailable: false, airDash: 0, coyote:0, jumpBuffer:0, orbCharges:0, lastFootstepCell:null };
+  const world = { camera: 0, backgroundOffset: 0, started: !FEATURES.titleScreen, completed: 0, complete: 0, messageShown: false, particles: [], afterimages:[], repairWaves:[], attackFlash:0, gateExit:0, gateExitParticles:[], hitStop:0, temporaryPlatforms:[], footsteps:[], history:[], thrownOrbs:[], bellWaves:[], gravityDirection:1, timeShifted:false, todoTimer:0, lastGround:null, narrative:null, fragmentTaken:false, residentSpoken:false, signShown:false, idleLoreShown:false, idleTime:0, mapOpen:false, boundaryMode:false, boundarySeen:false, boundaryPlatforms:[], menuOpen: false, controlGuide:false, developerOpen: false, courseSelect: false, clearedCourses: 0, currentCourse: 1, floating: false, stageClear: false, gateHintShown: false, guideSeen: false, repaired: 0, time: 0, checkpointIndex: 0, dialogueOpen: false, toastTimer: null, toastCountdownTimer: null, toastEndsAt: 0, autoSaveTimer: null, combo: 0, comboTimer: 0, stageBanner: 0, stageTipShown: false, stats:{orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0} };
+  const player = { x: 110, y: 450, w: 46, h: 74, vx: 0, vy: 0, grounded: false, facing: 1, walkClock: 0, groundDash: 0, dashCooldown: 0, invulnerable: 0, attack: 0, attackCooldown: 0, airDashAvailable: false, airDash: 0, coyote:0, jumpBuffer:0, orbCharges:0, lastFootstepCell:null, copiedWispCharges:0, copiedWispTimer:0 };
   // 速度を維持しながら渡る、長い浮島スプリント航路。着地点と次の目印を常に画面内に置く。
   const platforms = [
     ['start',0,580,440,60], ['p01',510,530,230,50], ['bridge-a',800,470,190,50], ['p02',1060,540,270,60],
@@ -121,6 +121,8 @@
   ];
   function loadCourse(number) {
     world.currentCourse=number; abilities.airDash=number>=5;
+    world.boundaryMode=false; world.boundaryPlatforms=[]; world.boundarySeen=false; world.mapOpen=false;
+    player.copiedWispCharges=0; player.copiedWispTimer=0;
     mechanicNumbers={ ...MECHANIC_NUMBERS, ...(STAGE_NUMERIC_OVERRIDES[number] || {}) };
     world.narrative=NARRATIVE_STAGE_CONTENT[number] || null;
     world.fragmentTaken=false; world.residentSpoken=false; world.signShown=false; world.idleLoreShown=false; world.idleTime=0; world.echoShown=false;
@@ -307,8 +309,16 @@
   function renderCourseMap() {
     document.querySelectorAll('.course-route path').forEach((path) => path.classList.toggle('is-visible',Number(path.dataset.step)<=world.clearedCourses));
     document.querySelectorAll('.course-node').forEach((node) => {
-      const course=Number(node.dataset.course); const cleared=course<=world.clearedCourses; const available=course===world.clearedCourses+1;
-      node.style.setProperty('--island-image',`url("assets/stages/stage-${String(course).padStart(2,'0')}-island.png")`);
+      const course=Number(node.dataset.course);
+      if (course===14) {
+        const unlocked=FEATURES.boundaryExpedition && world.clearedCourses>=13;
+        node.hidden=!unlocked; node.disabled=!unlocked;
+        node.classList.toggle('cleared',false); node.classList.toggle('available',unlocked); node.classList.toggle('locked',!unlocked);
+        node.style.removeProperty('--island-image');
+        return;
+      }
+      const cleared=course<=world.clearedCourses; const available=course===world.clearedCourses+1;
+      node.style.setProperty('--island-image',`url("assets/stages/Chapter1/stage-${String(course).padStart(2,'0')}-island.png")`);
       node.classList.toggle('cleared',cleared); node.classList.toggle('available',available); node.classList.toggle('locked',!cleared&&!available); node.disabled=!cleared&&!available;
     });
   }
@@ -330,6 +340,7 @@
   $('#courseToTitle').onclick = () => { closeCourseSelect(); resetGame(); world.started=false; closeDialogue(); showCourseSelect(); };
   document.querySelectorAll('.course-node').forEach((node) => node.onclick = () => {
     const course=Number(node.dataset.course);
+    if (course===14) { startBoundaryExpedition(); return; }
     if (course > world.clearedCourses + 1) return;
     if (pendingAutoSave?.data.course === course) {
       const saved=pendingAutoSave; pendingAutoSave=null; closeCourseSelect(); loadSave(saved.data,saved.index,{ pause:false }); return;
@@ -442,6 +453,8 @@
     if (world.controlGuide && e.code === 'Escape') { e.preventDefault(); setControlGuide(false); return; }
     if (e.code === 'F2' && FEATURES.developerTools) { e.preventDefault(); setDeveloper(!world.developerOpen); return; }
     if (!e.repeat && world.started && !world.menuOpen && !world.courseSelect && !world.stageClear) {
+      if (e.code==='KeyM' && FEATURES.handDrawnMap) { e.preventDefault(); world.mapOpen=!world.mapOpen; showToast(world.mapOpen?'ピース「歩いた道を地図に描いたよ。」':'ピース「地図を閉じた。」'); return; }
+      if (e.code==='KeyV' && FEATURES.enemyAbilityCopy && player.copiedWispCharges>0 && player.copiedWispTimer<=0) { e.preventDefault(); player.copiedWispCharges--; player.copiedWispTimer=6; showToast('ピース「コピーした風で、ゆっくり落ちる！」'); return; }
       if (e.code==='KeyQ' && FEATURES.rewind) { e.preventDefault(); rewindPlayer(); return; }
       if (e.code==='KeyR' && FEATURES.gravityRotation) { e.preventDefault(); world.gravityDirection*=-1; player.grounded=false; showToast(world.gravityDirection>0?'ピース「重力を戻したよ。」':'ピース「重力が反転した！」'); return; }
       if (e.code==='KeyT' && FEATURES.timeShift) { e.preventDefault(); world.timeShifted=!world.timeShifted; showToast(world.timeShifted?'ピース「時間の層をずらした。」':'ピース「時間の層を戻した。」'); return; }
@@ -468,7 +481,7 @@
     if (!FEATURES.rhythmPlatforms || platform.temp || platform.id==='start' || platform.id==='goal') return platform.y;
     return platform.y + Math.sin(world.time*mechanic('rhythmPlatformSpeed') + platform.x*.009) * mechanic('rhythmPlatformAmplitude');
   }
-  function surfaces() { return [...platforms, ...world.temporaryPlatforms]; }
+  function surfaces() { return [...platforms, ...(world.boundaryPlatforms || []), ...world.temporaryPlatforms]; }
   function addTemporaryPlatform(x,y,w=112,h=22,life=2.4,type='memory') {
     world.temporaryPlatforms.push({id:`temp-${performance.now()}-${Math.random()}`,x,y,w,h,life,type,temp:true,active:true});
   }
@@ -479,6 +492,11 @@
     if(FEATURES.hitStop) world.hitStop=.055;
     if(FEATURES.particles) for(let i=0;i<18;i++) world.particles.push({x:enemy.x+28,y:enemy.y+25,vx:(Math.random()-.5)*260,vy:-40-Math.random()*190,life:.65,color:'#b9ffda'});
     return true;
+  }
+  function grantWispWind() {
+    if (!FEATURES.enemyAbilityCopy) return;
+    player.copiedWispCharges=Math.min(3,(player.copiedWispCharges||0)+1);
+    showToast(`ピース「半端スライムの風をコピーした！ Vで使える（${player.copiedWispCharges}）」`);
   }
   function rewindPlayer() {
     if (!FEATURES.rewind || world.history.length<10) return;
@@ -491,6 +509,14 @@
     if (!FEATURES.orbThrow || player.orbCharges<=0) return;
     player.orbCharges--; world.thrownOrbs.push({x:player.x+player.w/2,y:player.y+28,vx:player.facing*mechanic('orbThrowSpeed'),vy:-90,life:mechanic('orbThrowLife')});
     showToast('ピース「オーブを投げた！」');
+  }
+  function startBoundaryExpedition() {
+    if(!FEATURES.boundaryExpedition || world.clearedCourses<13) return;
+    closeCourseSelect(); loadCourse(13); resetGame(); world.started=true; world.boundaryMode=true; world.boundarySeen=false; world.boundaryPlatforms=[];
+    const y=goalGate.y+82, x=goalGate.x+190;
+    for(let i=0;i<6;i++) world.boundaryPlatforms.push({id:`boundary-${i}`,x:x+i*225,y:y-(i%2)*42,w:175,h:40,active:true,temp:true,life:99999,type:'boundary'});
+    player.x=x+18; player.y=y-20-player.h; player.vx=0; player.vy=0; player.grounded=true; player.airDashAvailable=true;
+    showDialogue('ピース「地図の外……？　まだ作られていないのに、道がある。」');
   }
   function memoryCount() { try { return JSON.parse(localStorage.getItem('beta.memory-fragments.v1') || '[]').length; } catch { return 0; } }
   function rememberCurrentFragment() { if(!FEATURES.worldMemory) return; try { const values=new Set(JSON.parse(localStorage.getItem('beta.memory-fragments.v1') || '[]')); values.add(world.currentCourse); localStorage.setItem('beta.memory-fragments.v1',JSON.stringify([...values])); } catch { /* 進行はこの起動中にも維持される。 */ } }
@@ -517,7 +543,7 @@
     try { localStorage.setItem(SLOT_KEYS[slotIndex],JSON.stringify(data)); activeSaveSlot=slotIndex; renderSlots(); showAutoSaveIndicator(); }
     catch { /* ゲーム進行は止めず、セーブ画面で状態を確認できるようにする。 */ }
   }
-  function repair() { const target=FEATURES.enemyPurification && enemies.find(enemy=>enemy.alive && Math.hypot(enemy.x+enemy.w/2-(player.x+player.w/2),enemy.y+enemy.h/2-(player.y+player.h/2))<88); if(target){purgeEnemy(target);showToast('ピース「この子も直せるみたい！」');return;} const point=repairPoints.find(p=>!p.repaired && Math.abs((player.x+player.w/2)-p.x)<80 && Math.abs((player.y+player.h)-p.y)<100); if(!point)return; const firstRepair=world.currentCourse===1 && world.repaired===0; point.repaired=true; world.repaired++; world.stats.repairs++; const bridge=platforms.find(p=>p.id===point.platformId); if(bridge)bridge.active=true; addComplete(24); if(FEATURES.repairPulse)world.repairWaves.push({x:point.x,y:point.y,life:.7}); for(let i=0;i<26;i++)world.particles.push({x:point.x,y:point.y,vx:(Math.random()-.5)*300,vy:(Math.random()-.9)*330,life:.85,color:'#f7f6b2'}); if(FEATURES.repairDust) for(let i=0;i<18;i++)world.particles.push({x:point.x+(Math.random()-.5)*165,y:point.y+22,vx:(Math.random()-.5)*190,vy:-30-Math.random()*115,life:.65,color:'#e6d7ab'}); showToast(world.currentCourse===1 ? (firstRepair?'ピース「うわー！直った！よかった～」':'ピース「これも直った！よかった。」') : `ピース「${point.hint}を直したよ。」`); updateHud(); }
+  function repair() { const target=FEATURES.enemyPurification && enemies.find(enemy=>enemy.alive && Math.hypot(enemy.x+enemy.w/2-(player.x+player.w/2),enemy.y+enemy.h/2-(player.y+player.h/2))<88); if(target){if(purgeEnemy(target)){grantWispWind();}return;} const point=repairPoints.find(p=>!p.repaired && Math.abs((player.x+player.w/2)-p.x)<80 && Math.abs((player.y+player.h)-p.y)<100); if(!point)return; const firstRepair=world.currentCourse===1 && world.repaired===0; point.repaired=true; world.repaired++; world.stats.repairs++; const bridge=platforms.find(p=>p.id===point.platformId); if(bridge)bridge.active=true; addComplete(24); if(FEATURES.repairPulse)world.repairWaves.push({x:point.x,y:point.y,life:.7}); for(let i=0;i<26;i++)world.particles.push({x:point.x,y:point.y,vx:(Math.random()-.5)*300,vy:(Math.random()-.9)*330,life:.85,color:'#f7f6b2'}); if(FEATURES.repairDust) for(let i=0;i<18;i++)world.particles.push({x:point.x+(Math.random()-.5)*165,y:point.y+22,vx:(Math.random()-.5)*190,vy:-30-Math.random()*115,life:.65,color:'#e6d7ab'}); showToast(world.currentCourse===1 ? (firstRepair?'ピース「うわー！直った！よかった～」':'ピース「これも直った！よかった。」') : `ピース「${point.hint}を直したよ。」`); updateHud(); }
   function respawn() { const point=checkpoints[world.checkpointIndex]; const platform=platforms.find(p=>p.id===point.platformId); player.x=point.x; player.y=platform ? platform.y-20-player.h : 430; player.vx=0; player.vy=0; player.invulnerable=1.1; }
   function strike() {
     player.attack = .34; player.attackCooldown = .40; world.stats.attacks++;
@@ -595,7 +621,8 @@
       showToast(world.repaired===0?'ピース「あれ？なんで壊れてるんだろう？」':'ピース「あれ？ここも壊れてる。」');
     }
     if (input('repair')) { repair(); keys.delete(bindings.repair); }
-    const gravity=world.gravityDirection*tuning.gravity*mechanic('gravityMultiplier');
+    const copiedGlide=player.copiedWispTimer>0 ? .48 : 1;
+    const gravity=world.gravityDirection*tuning.gravity*mechanic('gravityMultiplier')*copiedGlide;
     if (!world.floating) player.vy += gravity * dt; player.x += player.vx*(FEATURES.heightLayer && player.y<mechanic('heightLayerY')?mechanic('heightLayerSpeedMultiplier'):1)*dt; player.y += player.vy*dt; player.grounded=false;
     for (const p of surfaces()) { if(!p.active) continue;
       const px=platformX(p), py=platformY(p), surfaceY=py-20;
@@ -614,7 +641,7 @@
     }
     if (player.y>750 || player.y<-130) { if(FEATURES.fallAssist && world.lastGround)addTemporaryPlatform(world.lastGround.x-50,world.lastGround.y,mechanic('fallAssistWidth'),22,mechanic('fallAssistLife'),'assist'); respawn(); }
     player.invulnerable = Math.max(0, player.invulnerable-dt);
-    player.attack = Math.max(0, player.attack-dt); player.groundDash = Math.max(0,player.groundDash-dt); player.dashCooldown = Math.max(0,player.dashCooldown-dt); player.airDash = Math.max(0,player.airDash-dt); player.attackCooldown = Math.max(0, player.attackCooldown-dt);
+    player.attack = Math.max(0, player.attack-dt); player.groundDash = Math.max(0,player.groundDash-dt); player.dashCooldown = Math.max(0,player.dashCooldown-dt); player.airDash = Math.max(0,player.airDash-dt); player.attackCooldown = Math.max(0, player.attackCooldown-dt); player.copiedWispTimer=Math.max(0,(player.copiedWispTimer||0)-dt);
     for (const enemy of enemies) {
       if (!enemy.alive) continue;
       const beat=FEATURES.rhythmPatrol ? .55+Math.abs(Math.sin(world.time*mechanic('rhythmPlatformSpeed')+enemy.phase))*.9 : 1;
@@ -647,6 +674,8 @@
       if (player.x >= point.x) { world.checkpointIndex=i; point.active=true; world.stats.checkpoints++; saveCheckpoint(); showToast('ピース「チェックポイント更新！」'); updateHud(); }
     }
     if (world.completed === shards.length && rect(player,{x:goalGate.x+36,y:goalGate.y-96,w:56,h:96})) beginGateExit();
+    const finalBoundary=world.boundaryPlatforms.at(-1);
+    if (world.boundaryMode && finalBoundary && !world.boundarySeen && player.x>finalBoundary.x+finalBoundary.w-24) { world.boundarySeen=true; showDialogue('ピース「ここから先は、まだ白紙だ。……でも、いつか道になる。」'); }
     if (FEATURES.comboMeter) { world.comboTimer=Math.max(0,world.comboTimer-dt); if(!world.comboTimer)world.combo=0; }
     if (FEATURES.courseTips && !world.stageTipShown && world.time>.12) { world.stageTipShown=true; showToast(world.currentCourse===5?'ピース「この縦坑は Air Dash で切り抜けよう！」':'ピース「青い風標が次の足場への道しるべだよ。」'); }
     updateNarrative(dt);
@@ -663,6 +692,21 @@
     world.particles = world.particles.filter((p) => (p.life-=dt)>0); world.particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=500*dt;});
   }
   function drawImagePart(img, sx,sy,sw,sh, dx,dy,dw,dh) { ctx.drawImage(img,sx,sy,sw,sh,dx,dy,dw,dh); }
+  function drawSketchMap() {
+    if (!FEATURES.handDrawnMap || !world.mapOpen) return;
+    const trail=world.history;
+    ctx.save(); ctx.translate(24,122); ctx.fillStyle='#071428eF'; ctx.fillRect(0,0,242,142); ctx.strokeStyle='#92ecff'; ctx.lineWidth=1; ctx.strokeRect(0,0,242,142);
+    ctx.fillStyle='#e6fbff'; ctx.font='800 11px sans-serif'; ctx.fillText('SKETCH MAP',12,18); ctx.fillStyle='#8eddf2'; ctx.font='10px sans-serif'; ctx.fillText('歩いた道だけが現れる',12,34);
+    if (trail.length>1) {
+      const minX=Math.min(...trail.map(point=>point.x)), maxX=Math.max(...trail.map(point=>point.x))+1;
+      const minY=Math.min(...trail.map(point=>point.y)), maxY=Math.max(...trail.map(point=>point.y))+1;
+      ctx.beginPath(); ctx.strokeStyle='#ffe77b'; ctx.lineWidth=2;
+      trail.forEach((point,index)=>{const x=18+(point.x-minX)/(maxX-minX)*206,y=128-(point.y-minY)/(maxY-minY)*74; index?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.stroke();
+      const latest=trail.at(-1); const px=18+(latest.x-minX)/(maxX-minX)*206, py=128-(latest.y-minY)/(maxY-minY)*74;
+      ctx.fillStyle='#75f1ff';ctx.beginPath();ctx.arc(px,py,4,0,Math.PI*2);ctx.fill();
+    } else { ctx.fillStyle='#7898b7'; ctx.fillText('まだ足跡が少ない。歩いて地図を描こう。',12,80); }
+    ctx.fillStyle='#b9d9f4';ctx.font='800 9px sans-serif';ctx.fillText('M  閉じる',174,132); ctx.restore();
+  }
   function draw() {
     ctx.clearRect(0,0,GAME_CONFIG.width,GAME_CONFIG.height);
     ctx.fillStyle='#071126';ctx.fillRect(0,0,GAME_CONFIG.width,GAME_CONFIG.height);
@@ -729,10 +773,13 @@
     if(world.gateExit > 0) { const elapsed=.92-world.gateExit; for(const p of world.gateExitParticles) { const raw=(elapsed-p.delay)/p.duration; if(raw<0) continue; const t=Math.min(1,raw), eased=1-(1-t)*(1-t); const x=p.x+(p.targetX-p.x)*eased+Math.sin(t*Math.PI)*p.spin, y=p.y+(p.targetY-p.y)*eased-Math.sin(t*Math.PI)*18; ctx.save();ctx.globalAlpha=(1-t)*.95;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=10;ctx.fillRect(x-p.size/2,y-p.size/2,p.size,p.size);ctx.restore(); } }
     if(FEATURES.particles) for(const p of world.particles){ctx.globalAlpha=p.life;ctx.fillStyle=p.color || '#b8faff';ctx.fillRect(p.x-2,p.y-2,5,5);ctx.globalAlpha=1;}
     ctx.restore();
+    if (world.boundaryMode) { ctx.save();ctx.fillStyle='#d2c6ff';ctx.font='800 12px monospace';ctx.fillText('UNBUILT WORLD // CHAPTER 2 ?',40,104);ctx.restore(); }
+    drawSketchMap();
     if(FEATURES.dangerVignette && (player.y>620 || enemies.some(enemy=>enemy.alive&&Math.hypot(enemy.x-player.x,enemy.y-player.y)<95))){ctx.save();ctx.globalAlpha=player.y>620?.32:.18;ctx.strokeStyle='#ff4f8d';ctx.lineWidth=32;ctx.strokeRect(0,0,GAME_CONFIG.width,GAME_CONFIG.height);ctx.restore();}
     if (FEATURES.orbCompass) { const target=shards.filter(shard=>!shard.taken).sort((a,b)=>Math.abs(a.x-player.x)-Math.abs(b.x-player.x))[0]; if(target){const direction=Math.sign(target.x-player.x)||1;ctx.save();ctx.translate(640,42);ctx.fillStyle='#b9f9ff';ctx.shadowColor='#4ce7ff';ctx.shadowBlur=12;ctx.beginPath();ctx.moveTo(direction*18,0);ctx.lineTo(-direction*10,-10);ctx.lineTo(-direction*10,10);ctx.closePath();ctx.fill();ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText('NEXT ORB',0,-16);ctx.restore();} }
     if (FEATURES.comboMeter && world.combo>1) { ctx.save();ctx.globalAlpha=Math.min(1,world.comboTimer);ctx.fillStyle='#fff09a';ctx.shadowColor='#ffb744';ctx.shadowBlur=12;ctx.font='bold 24px sans-serif';ctx.textAlign='center';ctx.fillText(`COMBO ×${world.combo}`,640,92);ctx.restore(); }
     if(FEATURES.groundDashReadyHint && player.grounded && player.dashCooldown<=0 && !world.menuOpen){ctx.save();ctx.globalAlpha=.72;ctx.fillStyle='#c5f7ff';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText('SHIFT  DASH READY',1160,54);ctx.restore();}
+    if(FEATURES.enemyAbilityCopy && (player.copiedWispTimer>0 || player.copiedWispCharges>0)){ctx.save();ctx.fillStyle='#c8ffdd';ctx.shadowColor='#61f4a1';ctx.shadowBlur=10;ctx.font='800 11px sans-serif';ctx.textAlign='center';ctx.fillText(player.copiedWispTimer>0?`WISP WIND  ${player.copiedWispTimer.toFixed(1)}s`:`WISP WIND  V ×${player.copiedWispCharges}`,640,116);ctx.restore();}
     if (FEATURES.stageBanner && world.stageBanner>0) { world.stageBanner=Math.max(0,world.stageBanner-1/60);ctx.save();ctx.globalAlpha=Math.min(1,world.stageBanner*2);ctx.fillStyle='#eafcff';ctx.shadowColor='#45dfff';ctx.shadowBlur=18;ctx.font='bold 30px sans-serif';ctx.textAlign='center';ctx.fillText(`STAGE ${world.currentCourse}　${courseNames[world.currentCourse-1]}`,640,165);ctx.restore(); }
     ctx.fillStyle='#061024aa';ctx.fillRect(0,680,1280,40); if(FEATURES.debug){ctx.fillStyle='white';ctx.font='14px monospace';ctx.fillText(`x:${Math.round(player.x)}  shards:${world.completed}`,20,700);}
   }

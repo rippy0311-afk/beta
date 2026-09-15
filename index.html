@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Beta — 欠けた世界の少年</title>
-    <link rel="stylesheet" href="style.css?v=14" />
+    <link rel="stylesheet" href="style.css?v=16" />
   </head>
   <body>
     <main class="game-shell">
@@ -30,6 +30,7 @@
             <div id="guideAirDashRow"><kbd>X</kbd><span>Air Dash <small id="guideAirDashStatus">空中・各着地1回</small></span></div>
             <div><kbd>Q</kbd><kbd>R</kbd><kbd>T</kbd><kbd>C</kbd><span>巻戻し・重力・時間・オーブ</span></div>
             <div><kbd>K</kbd><span>TODO を3秒消す</span></div>
+            <div><kbd>M</kbd><kbd>V</kbd><span>手描き地図・コピー能力</span></div>
             <div><kbd id="guideMenu">Esc</kbd><span>メニュー</span></div>
           </div>
           <p>画面のボタンは <kbd>↑↓←→</kbd> ＋ Enter で選択<br /><kbd>H</kbd> または <kbd>Esc</kbd> で閉じる</p>
@@ -61,12 +62,12 @@
           <p class="course-instruction" id="courseMessage">進むコースを選んでください。</p>
           <div class="course-map" aria-label="アルケアの航路マップ">
             <svg class="course-route" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-              <path data-step="1" d="M10 95 L22 81"/><path data-step="2" d="M22 81 L28 72"/><path data-step="3" d="M28 72 L39 70"/>
+              <path data-step="1" d="M10 88 L22 81"/><path data-step="2" d="M22 81 L28 72"/><path data-step="3" d="M28 72 L39 70"/>
               <path data-step="4" d="M39 70 L50 56"/><path data-step="5" d="M50 56 L57 30"/><path data-step="6" d="M57 30 L43 34"/>
-              <path data-step="7" d="M43 34 L67 23"/><path data-step="8" d="M67 23 L79 17"/><path data-step="9" d="M79 17 L93 7"/>
-              <path data-step="10" d="M93 7 L72 43"/><path data-step="11" d="M72 43 L62 54"/><path data-step="12" d="M62 54 L35 53"/>
+              <path data-step="7" d="M43 34 L67 23"/><path data-step="8" d="M67 23 L79 17"/><path data-step="9" d="M79 17 L93 14"/>
+              <path data-step="10" d="M93 14 L72 43"/><path data-step="11" d="M72 43 L62 54"/><path data-step="12" d="M62 54 L35 53"/>
             </svg>
-            <button class="course-node" data-course="1" style="left:10%;top:95%"><b>1</b><span>はじまりの足場島</span></button>
+            <button class="course-node" data-course="1" style="left:10%;top:88%"><b>1</b><span>はじまりの足場島</span></button>
             <button class="course-node" data-course="2" style="left:22%;top:81%"><b>2</b><span>雲裂きの工区</span></button>
             <button class="course-node" data-course="3" style="left:28%;top:72%"><b>3</b></button>
             <button class="course-node" data-course="4" style="left:39%;top:70%"><b>4</b></button>
@@ -75,10 +76,11 @@
             <button class="course-node" data-course="7" style="left:43%;top:34%"><b>7</b></button>
             <button class="course-node" data-course="8" style="left:67%;top:23%"><b>8</b></button>
             <button class="course-node" data-course="9" style="left:79%;top:17%"><b>9</b></button>
-            <button class="course-node" data-course="10" style="left:93%;top:7%"><b>10</b></button>
+            <button class="course-node" data-course="10" style="left:93%;top:14%"><b>10</b></button>
             <button class="course-node" data-course="11" style="left:72%;top:43%"><b>11</b></button>
             <button class="course-node" data-course="12" style="left:62%;top:54%"><b>12</b></button>
             <button class="course-node" data-course="13" style="left:35%;top:53%"><b>13</b></button>
+            <button class="course-node boundary-node" data-course="14" style="left:91%;top:78%" hidden><b>∞</b><span>世界の境界外</span></button>
           </div>
           <footer>◆ クリア済み　◇ 次のコース　▣ 未解放</footer>
         </section>
@@ -158,8 +160,8 @@
         <code>config.js</code> の <code>true / false</code> を変えるだけで、各機能をオン・オフできます。
       </aside>
     </main>
-    <script src="config.js?v=10"></script>
+    <script src="config.js?v=11"></script>
     <script src="stage-layouts.js?v=1"></script>
-    <script src="game.js?v=42"></script>
+    <script src="game.js?v=43"></script>
   </body>
 </html>
