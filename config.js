@@ -81,3 +81,47 @@ const GAME_CONFIG = Object.freeze({
   initialDialogue: 'ピース「これ……たぶん、まだ途中だよ。修復ポイントのそばで E を押してみよう。」',
   endDialogue: '第1章クリア！ はじまり島に、新しい光がともった。',
 });
+
+/*
+ * 数値が遊び方を決める仕組み。Stage BuilderはこのキーをそのままJSONに書けます。
+ * STAGE_NUMERIC_OVERRIDES の値が、該当ステージだけ下の標準値を上書きします。
+ */
+const MECHANIC_NUMBERS = Object.freeze({
+  footstepCellSize: 180,
+  footstepMemoryWindow: 18,
+  footstepPlatformWidth: 124,
+  footstepPlatformLife: 3.2,
+  windSpeed: 1.35,
+  windBridgeAmplitude: 22,
+  windPlatformAmplitude: 8,
+  rhythmPlatformSpeed: 3.2,
+  rhythmPlatformAmplitude: 7,
+  fallAssistWidth: 150,
+  fallAssistLife: 4,
+  dashPlatformLife: 1.65,
+  rainStairLife: 1.6,
+  blueprintLife: 1.2,
+  rewindFrames: 70,
+  rewindInvulnerability: 0.6,
+  gravityMultiplier: 1,
+  timeShiftEnemyRate: 0.45,
+  timeShiftDuration: 0,
+  todoEraseDuration: 3,
+  heightLayerY: 220,
+  heightLayerSpeedMultiplier: 1.12,
+  bellWaveLife: 0.38,
+  bellWaveRadius: 115,
+  orbThrowSpeed: 640,
+  orbThrowGravityMultiplier: 0.65,
+  orbThrowLife: 1.1,
+  particleStealthMinimum: 0.18,
+  shadowGuideDistance: 72,
+});
+
+const STAGE_NUMERIC_OVERRIDES = Object.freeze({
+  1: { windPlatformAmplitude: 3, rhythmPlatformAmplitude: 0 },
+  3: { windPlatformAmplitude: 12, rhythmPlatformAmplitude: 4 },
+  5: { windPlatformAmplitude: 16, dashPlatformLife: 2.1, rainStairLife: 2.0 },
+  10: { windBridgeAmplitude: 30, rhythmPlatformAmplitude: 10 },
+  13: { windPlatformAmplitude: 0, rhythmPlatformAmplitude: 0, footstepPlatformLife: 4.4 },
+});

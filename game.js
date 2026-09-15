@@ -61,6 +61,8 @@
   }
   let bindingAction = null;
   const tuning = { gravity:GAME_CONFIG.gravity, playerSpeed:GAME_CONFIG.playerSpeed, jumpVelocity:GAME_CONFIG.jumpVelocity };
+  let mechanicNumbers = { ...MECHANIC_NUMBERS, ...(STAGE_NUMERIC_OVERRIDES[1] || {}) };
+  const mechanic = (key) => mechanicNumbers[key] ?? MECHANIC_NUMBERS[key];
   // 実装を追加するときは abilities に機能名を足すだけで、開発・セーブ画面から扱える土台になる。
   const abilities = FEATURES.abilitySystem ? { airDash:false, doubleJump:false, glide:false } : {};
   const AIR_DASH_MAX_LEVEL = 5;
@@ -116,6 +118,7 @@
   ];
   function loadCourse(number) {
     world.currentCourse=number; abilities.airDash=number>=5;
+    mechanicNumbers={ ...MECHANIC_NUMBERS, ...(STAGE_NUMERIC_OVERRIDES[number] || {}) };
     images.background.src=stageBackgroundAsset(number);
     images.terrain.src=stageAsset(number,'stage-{stage}-platform.png');
     images.repairBefore.src=stageAsset(number,'repair-{stage}-before.png');
@@ -438,7 +441,7 @@
       if (e.code==='KeyR' && FEATURES.gravityRotation) { e.preventDefault(); world.gravityDirection*=-1; player.grounded=false; showToast(world.gravityDirection>0?'ピース「重力を戻したよ。」':'ピース「重力が反転した！」'); return; }
       if (e.code==='KeyT' && FEATURES.timeShift) { e.preventDefault(); world.timeShifted=!world.timeShifted; showToast(world.timeShifted?'ピース「時間の層をずらした。」':'ピース「時間の層を戻した。」'); return; }
       if (e.code==='KeyC' && FEATURES.orbThrow) { e.preventDefault(); throwOrb(); return; }
-      if (e.code==='KeyK' && FEATURES.todoErase) { e.preventDefault(); world.todoTimer=3; showToast('ピース「TODO を一時的に消した！」'); return; }
+      if (e.code==='KeyK' && FEATURES.todoErase) { e.preventDefault(); world.todoTimer=mechanic('todoEraseDuration'); showToast('ピース「TODO を一時的に消した！」'); return; }
     }
     if (Object.values(bindings).includes(e.code)) e.preventDefault();
     if (e.code === bindings.menu) { setMenu(!world.menuOpen); return; }
@@ -453,12 +456,12 @@
   function rect(a,b) { return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y; }
   function platformX(platform) {
     if (!FEATURES.windPlatforms || platform.temp || platform.id==='start' || platform.id==='goal') return platform.x;
-    const amplitude=platform.id.includes('bridge') ? 22 : 8;
-    return platform.x + Math.sin(world.time*1.35 + platform.x*.012) * amplitude;
+    const amplitude=platform.id.includes('bridge') ? mechanic('windBridgeAmplitude') : mechanic('windPlatformAmplitude');
+    return platform.x + Math.sin(world.time*mechanic('windSpeed') + platform.x*.012) * amplitude;
   }
   function platformY(platform) {
     if (!FEATURES.rhythmPlatforms || platform.temp || platform.id==='start' || platform.id==='goal') return platform.y;
-    return platform.y + Math.sin(world.time*3.2 + platform.x*.009) * 7;
+    return platform.y + Math.sin(world.time*mechanic('rhythmPlatformSpeed') + platform.x*.009) * mechanic('rhythmPlatformAmplitude');
   }
   function surfaces() { return [...platforms, ...world.temporaryPlatforms]; }
   function addTemporaryPlatform(x,y,w=112,h=22,life=2.4,type='memory') {
@@ -474,14 +477,14 @@
   }
   function rewindPlayer() {
     if (!FEATURES.rewind || world.history.length<10) return;
-    const snapshot=world.history[Math.max(0,world.history.length-70)];
-    player.x=snapshot.x; player.y=snapshot.y; player.vx=snapshot.vx*.3; player.vy=0; player.invulnerable=.6;
+    const snapshot=world.history[Math.max(0,world.history.length-mechanic('rewindFrames'))];
+    player.x=snapshot.x; player.y=snapshot.y; player.vx=snapshot.vx*.3; player.vy=0; player.invulnerable=mechanic('rewindInvulnerability');
     world.history.length=0;
     showToast('ピース「少し前の足場へ戻ったよ。」');
   }
   function throwOrb() {
     if (!FEATURES.orbThrow || player.orbCharges<=0) return;
-    player.orbCharges--; world.thrownOrbs.push({x:player.x+player.w/2,y:player.y+28,vx:player.facing*640,vy:-90,life:1.1});
+    player.orbCharges--; world.thrownOrbs.push({x:player.x+player.w/2,y:player.y+28,vx:player.facing*mechanic('orbThrowSpeed'),vy:-90,life:mechanic('orbThrowLife')});
     showToast('ピース「オーブを投げた！」');
   }
   function addComplete(value) { world.complete=Math.min(100,world.complete+value); $('#completeBar').style.width=`${world.complete}%`; }
@@ -561,10 +564,10 @@
       player.airDashAvailable=false; player.airDash=.18; player.vx=player.facing*distance/.18; player.vy=-35; world.stats.dashes++;
       if(FEATURES.airDashRing) world.repairWaves.push({x:player.x+player.w/2,y:player.y+player.h/2,life:.38,color:'#ffe45a',max:64});
       if(FEATURES.dashAfterimages) for(let i=0;i<5;i++)world.afterimages.push({x:player.x-player.facing*i*14,y:player.y+i*2,life:.30-i*.035,color:'#fff09a'});
-      if(FEATURES.dashPlatforms) addTemporaryPlatform(player.x-30,player.y+player.h+18,112,20,1.65,'dash');
+      if(FEATURES.dashPlatforms) addTemporaryPlatform(player.x-30,player.y+player.h+18,112,20,mechanic('dashPlatformLife'),'dash');
       keys.delete('KeyX'); if(FEATURES.particles) for(let i=0;i<16;i++)world.particles.push({x:player.x+player.w/2,y:player.y+34,vx:-player.facing*(70+Math.random()*180),vy:(Math.random()-.5)*140,life:.35,color:'#ffe45a'});
     }
-    if (input('attack') && player.attackCooldown <= 0) { strike(); if(FEATURES.bellWave){world.bellWaves.push({x:player.x+player.w/2,y:player.y+34,life:.38});} if(FEATURES.rainStairs && !player.grounded)addTemporaryPlatform(player.x-30,player.y+player.h+26,110,18,1.6,'rain'); keys.delete(bindings.attack); keys.delete('attack'); }
+    if (input('attack') && player.attackCooldown <= 0) { strike(); if(FEATURES.bellWave){world.bellWaves.push({x:player.x+player.w/2,y:player.y+34,life:mechanic('bellWaveLife')});} if(FEATURES.rainStairs && !player.grounded)addTemporaryPlatform(player.x-30,player.y+player.h+26,110,18,mechanic('rainStairLife'),'rain'); keys.delete(bindings.attack); keys.delete('attack'); }
     // 最初の島だけ、未完成の足場に気づく導入会話を表示する。
     const nearbyRepair=world.currentCourse===1 && repairPoints.find(point=>!point.repaired && !point.promptShown && Math.abs((player.x+player.w/2)-point.x)<80 && Math.abs((player.y+player.h)-point.y)<100);
     if (nearbyRepair) {
@@ -572,8 +575,8 @@
       showToast(world.repaired===0?'ピース「あれ？なんで壊れてるんだろう？」':'ピース「あれ？ここも壊れてる。」');
     }
     if (input('repair')) { repair(); keys.delete(bindings.repair); }
-    const gravity=world.gravityDirection*tuning.gravity;
-    if (!world.floating) player.vy += gravity * dt; player.x += player.vx*(FEATURES.heightLayer && player.y<220?1.12:1)*dt; player.y += player.vy*dt; player.grounded=false;
+    const gravity=world.gravityDirection*tuning.gravity*mechanic('gravityMultiplier');
+    if (!world.floating) player.vy += gravity * dt; player.x += player.vx*(FEATURES.heightLayer && player.y<mechanic('heightLayerY')?mechanic('heightLayerSpeedMultiplier'):1)*dt; player.y += player.vy*dt; player.grounded=false;
     for (const p of surfaces()) { if(!p.active) continue;
       const px=platformX(p), py=platformY(p), surfaceY=py-20;
       const descending=player.vy*world.gravityDirection>=0;
@@ -589,13 +592,13 @@
       player.x = goalGate.x - player.w; player.vx = 0;
       if (!world.gateHintShown) { world.gateHintShown=true; showToast(`ピース「あと ${shards.length-world.completed} 個のオーブが必要だよ。集めたオーブがゲートのレンガになるんだ。」`); }
     }
-    if (player.y>750 || player.y<-130) { if(FEATURES.fallAssist && world.lastGround)addTemporaryPlatform(world.lastGround.x-50,world.lastGround.y,150,22,4,'assist'); respawn(); }
+    if (player.y>750 || player.y<-130) { if(FEATURES.fallAssist && world.lastGround)addTemporaryPlatform(world.lastGround.x-50,world.lastGround.y,mechanic('fallAssistWidth'),22,mechanic('fallAssistLife'),'assist'); respawn(); }
     player.invulnerable = Math.max(0, player.invulnerable-dt);
     player.attack = Math.max(0, player.attack-dt); player.groundDash = Math.max(0,player.groundDash-dt); player.dashCooldown = Math.max(0,player.dashCooldown-dt); player.airDash = Math.max(0,player.airDash-dt); player.attackCooldown = Math.max(0, player.attackCooldown-dt);
     for (const enemy of enemies) {
       if (!enemy.alive) continue;
-      const beat=FEATURES.rhythmPatrol ? .55+Math.abs(Math.sin(world.time*3.2+enemy.phase))*.9 : 1;
-      enemy.x += enemy.speed * enemy.dir * dt * beat * (world.timeShifted ? .45 : 1);
+      const beat=FEATURES.rhythmPatrol ? .55+Math.abs(Math.sin(world.time*mechanic('rhythmPlatformSpeed')+enemy.phase))*.9 : 1;
+      enemy.x += enemy.speed * enemy.dir * dt * beat * (world.timeShifted ? mechanic('timeShiftEnemyRate') : 1);
       if (enemy.x < enemy.min || enemy.x > enemy.max) { enemy.dir *= -1; enemy.x = Math.max(enemy.min, Math.min(enemy.max, enemy.x)); }
       // 敵も主人公と同じ重力と足場上面を使う。足場の高さが変わるコースでも沈んだり浮いたりしない。
       enemy.vy=(enemy.vy||0)+tuning.gravity*dt; enemy.y+=enemy.vy*dt;
@@ -610,12 +613,12 @@
       }
       if (rect(player,{x:shard.x-20,y:shard.y-20,w:40,h:48})) collect(shard);
     }
-    if(FEATURES.footstepMemory && player.grounded){const cell=Math.round((player.x+player.w/2)/180);if(cell!==player.lastFootstepCell){const revisited=world.footsteps.includes(cell);world.footsteps.push(cell);world.footsteps=world.footsteps.slice(-18);player.lastFootstepCell=cell;if(revisited)addTemporaryPlatform(player.x+player.facing*82,player.y+player.h+26,124,20,3.2,'memory');}}
-    if(FEATURES.blueprintWalk) for(const point of repairPoints) if(!point.repaired && Math.abs(player.x-point.x)<85 && player.groundDash>0 && (point.blueprintUntil||0)<world.time){point.blueprintUntil=world.time+1.2;addTemporaryPlatform(point.x-92,point.y+18,184,20,1.2,'blueprint');}
+    if(FEATURES.footstepMemory && player.grounded){const cell=Math.round((player.x+player.w/2)/mechanic('footstepCellSize'));if(cell!==player.lastFootstepCell){const revisited=world.footsteps.includes(cell);world.footsteps.push(cell);world.footsteps=world.footsteps.slice(-mechanic('footstepMemoryWindow'));player.lastFootstepCell=cell;if(revisited)addTemporaryPlatform(player.x+player.facing*82,player.y+player.h+26,mechanic('footstepPlatformWidth'),20,mechanic('footstepPlatformLife'),'memory');}}
+    if(FEATURES.blueprintWalk) for(const point of repairPoints) if(!point.repaired && Math.abs(player.x-point.x)<85 && player.groundDash>0 && (point.blueprintUntil||0)<world.time){point.blueprintUntil=world.time+mechanic('blueprintLife');addTemporaryPlatform(point.x-92,point.y+18,184,20,mechanic('blueprintLife'),'blueprint');}
     world.history.push({x:player.x,y:player.y,vx:player.vx}); if(world.history.length>150)world.history.shift();
-    for(const orb of world.thrownOrbs){orb.x+=orb.vx*dt;orb.y+=orb.vy*dt;orb.vy+=tuning.gravity*.65*dt;for(const enemy of enemies)if(enemy.alive&&rect({x:orb.x-10,y:orb.y-10,w:20,h:20},enemy)){purgeEnemy(enemy);orb.life=0;}}
+    for(const orb of world.thrownOrbs){orb.x+=orb.vx*dt;orb.y+=orb.vy*dt;orb.vy+=tuning.gravity*mechanic('orbThrowGravityMultiplier')*dt;for(const enemy of enemies)if(enemy.alive&&rect({x:orb.x-10,y:orb.y-10,w:20,h:20},enemy)){purgeEnemy(enemy);orb.life=0;}}
     world.thrownOrbs=world.thrownOrbs.filter(orb=>(orb.life-=dt)>0);
-    for(const wave of world.bellWaves) for(const enemy of enemies)if(enemy.alive&&Math.hypot(enemy.x-player.x,enemy.y-player.y)<115){enemy.dir*=-1;}
+    for(const wave of world.bellWaves) for(const enemy of enemies)if(enemy.alive&&Math.hypot(enemy.x-player.x,enemy.y-player.y)<mechanic('bellWaveRadius')){enemy.dir*=-1;}
     world.bellWaves=world.bellWaves.filter(wave=>(wave.life-=dt)>0);
     const guide=currentGuide(); const guidePlatform=guide && platforms[Math.max(1,Math.floor(platforms.length*.45))];
     if (guide && guidePlatform && !world.guideSeen && Math.abs(player.x-guidePlatform.x)<120) { world.guideSeen=true; showDialogue(`${guide.name}「${guide.ability}。私たちはピースと同じ、未完成の力から生まれた案内人だよ。」`); }
@@ -684,7 +687,7 @@
     }
     if (FEATURES.collectibles) for (const s of shards) if(!s.taken) { const pulse=FEATURES.orbPulse?1+Math.sin(performance.now()/180+s.x)*.12:1;ctx.save(); ctx.translate(s.x,s.y+Math.sin(performance.now()/230+s.x)*7);ctx.scale(pulse,pulse); ctx.shadowColor='#55eaff';ctx.shadowBlur=22; drawImagePart(images.orb,1075,515,190,230,-26,-30,52,64);if(FEATURES.orbPulse){ctx.fillStyle='#d9ffff';for(let i=0;i<3;i++){const a=performance.now()/260+i*2.1;ctx.fillRect(Math.cos(a)*30-2,Math.sin(a)*19-2,4,4);}}ctx.restore(); }
     if(FEATURES.dashAfterimages) for(const echo of world.afterimages){ctx.save();ctx.globalAlpha=Math.min(.45,echo.life*1.5);ctx.fillStyle=echo.color;ctx.fillRect(echo.x-7,echo.y+22,58,58);ctx.restore();}
-    if(FEATURES.shadowGuide){const target=shards.find(shard=>!shard.taken);if(target){ctx.save();ctx.globalAlpha=.36;ctx.fillStyle='#11172f';ctx.translate(player.x+player.w/2+(target.x>player.x?72:-72),player.y+player.h-3);ctx.beginPath();ctx.ellipse(0,0,22,6,0,0,Math.PI*2);ctx.fill();ctx.restore();}}
+    if(FEATURES.shadowGuide){const target=shards.find(shard=>!shard.taken);if(target){ctx.save();ctx.globalAlpha=.36;ctx.fillStyle='#11172f';ctx.translate(player.x+player.w/2+(target.x>player.x?mechanic('shadowGuideDistance'):-mechanic('shadowGuideDistance')),player.y+player.h-3);ctx.beginPath();ctx.ellipse(0,0,22,6,0,0,Math.PI*2);ctx.fill();ctx.restore();}}
     if(FEATURES.playerShadow){ctx.save();ctx.globalAlpha=.34;ctx.fillStyle='#020611';ctx.beginPath();ctx.ellipse(player.x+player.w/2,player.y+player.h+5,28,6,0,0,Math.PI*2);ctx.fill();ctx.restore();}
     const spriteState = !player.grounded ? 2 : Math.abs(player.vx)>2 ? 1 : 0;
     ctx.save(); ctx.translate(player.x+player.w/2,player.y); if(player.facing<0)ctx.scale(-1,1);
@@ -693,9 +696,9 @@
     const pieceY = player.y - 34 + Math.sin(performance.now()/220)*7; ctx.save();ctx.translate(player.x-16,pieceY);ctx.globalAlpha=world.gateExit>0?Math.max(0,1-((.92-world.gateExit)/.32)):1;ctx.shadowColor='#b9f8ff';ctx.shadowBlur=16;drawImagePart(images.pieceSlime,130,150,580,620,-22,-22,45,50);ctx.restore();
     const guide=currentGuide(); const guidePlatform=guide && platforms[Math.max(1,Math.floor(platforms.length*.45))];
     if(guide && guidePlatform) { const gy=guidePlatform.y-20-56+Math.sin(performance.now()/230)*6; ctx.save();ctx.translate(guidePlatform.x+guidePlatform.w/2,gy);ctx.shadowColor=guide.color;ctx.shadowBlur=20;drawImagePart(images.pieceSlime,130,150,580,620,-24,-24,48,54);ctx.globalCompositeOperation='source-atop';ctx.globalAlpha=.58;ctx.fillStyle=guide.color;ctx.fillRect(-28,-28,56,62);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.fillStyle='#f7fbff';ctx.textAlign='center';ctx.font='bold 12px sans-serif';ctx.fillText(guide.name,0,-35);ctx.textAlign='start';ctx.restore(); }
-    for (const enemy of enemies) if (enemy.alive) { const bob = Math.sin(performance.now()/210 + enemy.phase) * 4; const stealth=FEATURES.particleStealth ? Math.min(1,.18+Math.abs(player.vx)/tuning.playerSpeed) : 1; ctx.save();ctx.globalAlpha=stealth; ctx.translate(enemy.x + enemy.w/2, enemy.y + bob); ctx.shadowColor='#5eeaff'; ctx.shadowBlur=10; if(enemy.dir<0)ctx.scale(-1,1); drawImagePart(images.pieceSlime,1060,260,650,560,-35,-8,70,60); if(FEATURES.enemyEyes){ctx.fillStyle='#ff6cf0';ctx.shadowColor='#ff4ee8';ctx.shadowBlur=8;ctx.fillRect(7,-1,5,5);ctx.fillRect(17,-1,5,5);}ctx.restore();if(FEATURES.enemyDirectionMarkers){ctx.save();ctx.globalAlpha=stealth;ctx.translate(enemy.x+enemy.w/2,enemy.y-10);ctx.fillStyle='#ff90eb';ctx.beginPath();ctx.moveTo(enemy.dir*10,0);ctx.lineTo(-enemy.dir*5,-5);ctx.lineTo(-enemy.dir*5,5);ctx.closePath();ctx.fill();ctx.restore();} }
+    for (const enemy of enemies) if (enemy.alive) { const bob = Math.sin(performance.now()/210 + enemy.phase) * 4; const stealth=FEATURES.particleStealth ? Math.min(1,mechanic('particleStealthMinimum')+Math.abs(player.vx)/tuning.playerSpeed) : 1; ctx.save();ctx.globalAlpha=stealth; ctx.translate(enemy.x + enemy.w/2, enemy.y + bob); ctx.shadowColor='#5eeaff'; ctx.shadowBlur=10; if(enemy.dir<0)ctx.scale(-1,1); drawImagePart(images.pieceSlime,1060,260,650,560,-35,-8,70,60); if(FEATURES.enemyEyes){ctx.fillStyle='#ff6cf0';ctx.shadowColor='#ff4ee8';ctx.shadowBlur=8;ctx.fillRect(7,-1,5,5);ctx.fillRect(17,-1,5,5);}ctx.restore();if(FEATURES.enemyDirectionMarkers){ctx.save();ctx.globalAlpha=stealth;ctx.translate(enemy.x+enemy.w/2,enemy.y-10);ctx.fillStyle='#ff90eb';ctx.beginPath();ctx.moveTo(enemy.dir*10,0);ctx.lineTo(-enemy.dir*5,-5);ctx.lineTo(-enemy.dir*5,5);ctx.closePath();ctx.fill();ctx.restore();} }
     for(const orb of world.thrownOrbs){ctx.save();ctx.translate(orb.x,orb.y);ctx.fillStyle='#fff7a6';ctx.shadowColor='#59edff';ctx.shadowBlur=15;ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();ctx.restore();}
-    for(const wave of world.bellWaves){const t=1-wave.life/.38;ctx.save();ctx.globalAlpha=1-t;ctx.strokeStyle='#fff2a0';ctx.lineWidth=3;ctx.beginPath();ctx.arc(wave.x,wave.y,18+t*110,0,Math.PI*2);ctx.stroke();ctx.restore();}
+    for(const wave of world.bellWaves){const t=1-wave.life/mechanic('bellWaveLife');ctx.save();ctx.globalAlpha=1-t;ctx.strokeStyle='#fff2a0';ctx.lineWidth=3;ctx.beginPath();ctx.arc(wave.x,wave.y,18+t*110,0,Math.PI*2);ctx.stroke();ctx.restore();}
     if(world.gateExit > 0) { const elapsed=.92-world.gateExit; for(const p of world.gateExitParticles) { const raw=(elapsed-p.delay)/p.duration; if(raw<0) continue; const t=Math.min(1,raw), eased=1-(1-t)*(1-t); const x=p.x+(p.targetX-p.x)*eased+Math.sin(t*Math.PI)*p.spin, y=p.y+(p.targetY-p.y)*eased-Math.sin(t*Math.PI)*18; ctx.save();ctx.globalAlpha=(1-t)*.95;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=10;ctx.fillRect(x-p.size/2,y-p.size/2,p.size,p.size);ctx.restore(); } }
     if(FEATURES.particles) for(const p of world.particles){ctx.globalAlpha=p.life;ctx.fillStyle=p.color || '#b8faff';ctx.fillRect(p.x-2,p.y-2,5,5);ctx.globalAlpha=1;}
     ctx.restore();
