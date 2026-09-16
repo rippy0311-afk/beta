@@ -91,6 +91,16 @@ const FEATURES = Object.freeze({
   enemyStun: true,
   windCatch: true,
   chargeAttack: true,
+  doubleJump: true,
+  glideFlight: true,
+  dashOrbAttract: true,
+  attackOrbBurst: true,
+  enemyKnockback: true,
+  repairShield: true,
+  comboTimeSlow: true,
+  checkpointWind: true,
+  orbBounce: true,
+  skyGlyphs: true,
 });
 
 const GAME_CONFIG = Object.freeze({

@@ -120,7 +120,7 @@
     { course:11, name:'Luna', color:'#ff6575', ability:'月影の力を調律する' },
   ];
   function loadCourse(number) {
-    world.currentCourse=number; abilities.airDash=number>=5;
+    world.currentCourse=number; abilities.airDash=number>=5; abilities.doubleJump=FEATURES.doubleJump && number>=8; abilities.glide=FEATURES.glideFlight && number>=11;
     world.boundaryMode=false; world.boundaryPlatforms=[]; world.boundarySeen=false; world.mapOpen=false;
     player.copiedWispCharges=0; player.copiedWispTimer=0;
     mechanicNumbers={ ...MECHANIC_NUMBERS, ...(STAGE_NUMERIC_OVERRIDES[number] || {}) };
@@ -325,7 +325,7 @@
   function showCourseSelect(message='次の行き先を選んでください。') { setDeveloper(false); setControlGuide(false); world.courseSelect=true; world.menuOpen=false; $('#pauseMenu').hidden=true; closeDialogue(); $('#courseSelect').hidden=false; renderCourseMap(); $('#courseMessage').textContent=message; }
   function openCourseSelect() { world.clearedCourses=Math.max(world.clearedCourses,world.currentCourse); persistWorldProgress(); showCourseSelect(world.currentCourse===13?'CHAPTER 1 COMPLETE！ アルケアの航路がひとつ完成した。':'次の行き先を選んでください。'); }
   function closeCourseSelect() { world.courseSelect=false; $('#courseSelect').hidden=true; }
-  function resetGame() { world.camera=0; world.backgroundOffset=0; world.time=0; world.checkpointIndex=0; world.completed=0; world.complete=0; world.repaired=0; world.combo=0; world.comboTimer=0; world.repairCombo=0; world.repairComboTimer=0; world.recoveryGlow=0; world.groundPound=0; world.hitStop=0; world.temporaryPlatforms=[]; world.footsteps=[]; world.history=[]; world.thrownOrbs=[]; world.bellWaves=[]; world.gravityDirection=1; world.timeShifted=false; world.todoTimer=0; world.lastGround=null; world.stats={orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0}; world.stageTipShown=false; world.messageShown=false; world.gateHintShown=false; world.guideSeen=false; world.particles=[]; world.afterimages=[]; world.repairWaves=[]; world.attackFlash=0; world.gateExit=0; world.gateExitParticles=[]; world.stageClear=false; world.courseSelect=false; world.floating=false; setControlGuide(false); $('#devFloat').textContent='浮遊：OFF'; $('#stageClear').hidden=true; $('#courseSelect').hidden=true; const start=checkpoints[0],startPlatform=platforms.find(p=>p.id===start.platformId); player.x=start.x; player.y=(startPlatform?.y||520)-20-player.h; player.vx=0; player.vy=0; player.attack=0; player.attackCooldown=0; player.groundDash=0; player.dashCooldown=0; player.airDash=0; player.airDashAvailable=abilities.airDash; player.coyote=0; player.jumpBuffer=0; player.orbCharges=0; player.lastFootstepCell=null; player.charging=0; player.chargeReady=false; player.invulnerable=0; shards.forEach(s=>s.taken=false); repairPoints.forEach(p=>{p.repaired=false;p.promptShown=false;}); platforms.forEach(p=>p.active=p.defaultActive ?? !['bridge-a','bridge-b'].includes(p.id)); checkpoints.forEach((p,i)=>p.active=i===0); enemies.forEach(e=>{e.alive=true;e.purified=false;e.stun=0;}); $('#completeBar').style.width='0%'; updateHud(); $('#runTimer').textContent='00:00.00'; setMenu(false); showDialogue(abilities.airDash?'ピース「Air Dashが使えるよ！ 空中で X を押して、向いている方向へ飛ぼう。」':GAME_CONFIG.initialDialogue); }
+  function resetGame() { world.camera=0; world.backgroundOffset=0; world.time=0; world.checkpointIndex=0; world.completed=0; world.complete=0; world.repaired=0; world.combo=0; world.comboTimer=0; world.repairCombo=0; world.repairComboTimer=0; world.recoveryGlow=0; world.groundPound=0; world.hitStop=0; world.temporaryPlatforms=[]; world.footsteps=[]; world.history=[]; world.thrownOrbs=[]; world.bellWaves=[]; world.gravityDirection=1; world.timeShifted=false; world.todoTimer=0; world.lastGround=null; world.stats={orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0}; world.stageTipShown=false; world.messageShown=false; world.gateHintShown=false; world.guideSeen=false; world.particles=[]; world.afterimages=[]; world.repairWaves=[]; world.attackFlash=0; world.gateExit=0; world.gateExitParticles=[]; world.stageClear=false; world.courseSelect=false; world.floating=false; setControlGuide(false); $('#devFloat').textContent='浮遊：OFF'; $('#stageClear').hidden=true; $('#courseSelect').hidden=true; const start=checkpoints[0],startPlatform=platforms.find(p=>p.id===start.platformId); player.x=start.x; player.y=(startPlatform?.y||520)-20-player.h; player.vx=0; player.vy=0; player.attack=0; player.attackCooldown=0; player.groundDash=0; player.dashCooldown=0; player.airDash=0; player.airDashAvailable=abilities.airDash; player.doubleJumpAvailable=abilities.doubleJump; player.coyote=0; player.jumpBuffer=0; player.orbCharges=0; player.lastFootstepCell=null; player.charging=0; player.chargeReady=false; player.invulnerable=0; shards.forEach(s=>s.taken=false); repairPoints.forEach(p=>{p.repaired=false;p.promptShown=false;}); platforms.forEach(p=>p.active=p.defaultActive ?? !['bridge-a','bridge-b'].includes(p.id)); checkpoints.forEach((p,i)=>p.active=i===0); enemies.forEach(e=>{e.alive=true;e.purified=false;e.stun=0;}); $('#completeBar').style.width='0%'; updateHud(); $('#runTimer').textContent='00:00.00'; setMenu(false); showDialogue(abilities.airDash?'ピース「Air Dashが使えるよ！ 空中で X を押して、向いている方向へ飛ぼう。」':GAME_CONFIG.initialDialogue); }
   $('#resumeGame').onclick = () => setMenu(false); $('#restartGame').onclick = resetGame;
   $('#exitStage').onclick = () => {
     // 退出は現在のステージ用オートセーブだけを削除し、解放済みコースの記録は残す。
@@ -537,16 +537,16 @@
     if(FEATURES.idleLore) { world.idleTime=Math.abs(player.vx)<5 ? world.idleTime+dt : 0; if(world.idleTime>5 && !world.idleLoreShown) { world.idleLoreShown=true; showToast(`ピース「${story.memory}」`); } }
   }
   function addComplete(value) { world.complete=Math.min(100,world.complete+value); $('#completeBar').style.width=`${world.complete}%`; }
-  function collect(shard) { shard.taken = true; world.completed++; world.stats.orbs++; player.orbCharges++; if(FEATURES.dashRefillOnOrb && !player.grounded){player.airDashAvailable=abilities.airDash;showToast('ピース「オーブでAir Dashが戻った！」');} addComplete(10); if (FEATURES.particles) for (let i=0;i<16;i++) world.particles.push({x:shard.x,y:shard.y,vx:(Math.random()-.5)*240,vy:(Math.random()-.8)*250,life:1}); if(FEATURES.orbTrail) for(let i=0;i<10;i++) world.particles.push({x:shard.x,y:shard.y,vx:(Math.random()-.5)*160,vy:-40-Math.random()*170,life:.45,color:'#8cf7ff'}); updateHud(); }
+  function collect(shard) { shard.taken = true; world.completed++; world.stats.orbs++; player.orbCharges++; if(FEATURES.dashRefillOnOrb && !player.grounded){player.airDashAvailable=abilities.airDash;showToast('ピース「オーブでAir Dashが戻った！」');} if(FEATURES.orbBounce && !player.grounded)player.vy=Math.min(player.vy,-210); addComplete(10); if (FEATURES.particles) for (let i=0;i<16;i++) world.particles.push({x:shard.x,y:shard.y,vx:(Math.random()-.5)*240,vy:(Math.random()-.8)*250,life:1}); if(FEATURES.orbTrail) for(let i=0;i<10;i++) world.particles.push({x:shard.x,y:shard.y,vx:(Math.random()-.5)*160,vy:-40-Math.random()*170,life:.45,color:'#8cf7ff'}); updateHud(); }
   function saveCheckpoint() {
     if (!FEATURES.autoSave || !FEATURES.saveData) return;
     const slotIndex=activeSaveSlot ?? 0;
     const data=snapshot();
     if (!validSave(data)) return;
-    try { localStorage.setItem(SLOT_KEYS[slotIndex],JSON.stringify(data)); activeSaveSlot=slotIndex; renderSlots(); showAutoSaveIndicator(); }
+    try { localStorage.setItem(SLOT_KEYS[slotIndex],JSON.stringify(data)); activeSaveSlot=slotIndex; renderSlots(); showAutoSaveIndicator(); if(FEATURES.checkpointWind)for(let i=0;i<10;i++)world.particles.push({x:player.x+player.w/2,y:player.y+28,vx:(Math.random()-.5)*100,vy:-70-Math.random()*120,life:.55,color:'#a9f5ff'}); }
     catch { /* ゲーム進行は止めず、セーブ画面で状態を確認できるようにする。 */ }
   }
-  function repair() { const target=FEATURES.enemyPurification && enemies.find(enemy=>enemy.alive && Math.hypot(enemy.x+enemy.w/2-(player.x+player.w/2),enemy.y+enemy.h/2-(player.y+player.h/2))<88); if(target){if(purgeEnemy(target)){grantWispWind();}return;} const point=repairPoints.find(p=>!p.repaired && Math.abs((player.x+player.w/2)-p.x)<80 && Math.abs((player.y+player.h)-p.y)<100); if(!point)return; const firstRepair=world.currentCourse===1 && world.repaired===0; point.repaired=true; world.repaired++; world.stats.repairs++; if(FEATURES.repairCombo){world.repairCombo=world.repairComboTimer>0?world.repairCombo+1:1;world.repairComboTimer=7;} if(FEATURES.recoveryGlow)world.recoveryGlow=1.1; const bridge=platforms.find(p=>p.id===point.platformId); if(bridge)bridge.active=true; addComplete(24+(FEATURES.repairCombo?Math.min(8,world.repairCombo*2):0)); if(FEATURES.repairPulse)world.repairWaves.push({x:point.x,y:point.y,life:.7}); for(let i=0;i<26;i++)world.particles.push({x:point.x,y:point.y,vx:(Math.random()-.5)*300,vy:(Math.random()-.9)*330,life:.85,color:'#f7f6b2'}); if(FEATURES.repairDust) for(let i=0;i<18;i++)world.particles.push({x:point.x+(Math.random()-.5)*165,y:point.y+22,vx:(Math.random()-.5)*190,vy:-30-Math.random()*115,life:.65,color:'#e6d7ab'}); showToast(world.currentCourse===1 ? (firstRepair?'ピース「うわー！直った！よかった～」':'ピース「これも直った！よかった。」') : `ピース「${point.hint}を直したよ。」`); updateHud(); }
+  function repair() { const target=FEATURES.enemyPurification && enemies.find(enemy=>enemy.alive && Math.hypot(enemy.x+enemy.w/2-(player.x+player.w/2),enemy.y+enemy.h/2-(player.y+player.h/2))<88); if(target){if(purgeEnemy(target)){grantWispWind();}return;} const point=repairPoints.find(p=>!p.repaired && Math.abs((player.x+player.w/2)-p.x)<80 && Math.abs((player.y+player.h)-p.y)<100); if(!point)return; const firstRepair=world.currentCourse===1 && world.repaired===0; point.repaired=true; world.repaired++; world.stats.repairs++; if(FEATURES.repairCombo){world.repairCombo=world.repairComboTimer>0?world.repairCombo+1:1;world.repairComboTimer=7;} if(FEATURES.recoveryGlow)world.recoveryGlow=1.1; if(FEATURES.repairShield)player.invulnerable=Math.max(player.invulnerable,1.25); const bridge=platforms.find(p=>p.id===point.platformId); if(bridge)bridge.active=true; addComplete(24+(FEATURES.repairCombo?Math.min(8,world.repairCombo*2):0)); if(FEATURES.repairPulse)world.repairWaves.push({x:point.x,y:point.y,life:.7}); for(let i=0;i<26;i++)world.particles.push({x:point.x,y:point.y,vx:(Math.random()-.5)*300,vy:(Math.random()-.9)*330,life:.85,color:'#f7f6b2'}); if(FEATURES.repairDust) for(let i=0;i<18;i++)world.particles.push({x:point.x+(Math.random()-.5)*165,y:point.y+22,vx:(Math.random()-.5)*190,vy:-30-Math.random()*115,life:.65,color:'#e6d7ab'}); showToast(world.currentCourse===1 ? (firstRepair?'ピース「うわー！直った！よかった～」':'ピース「これも直った！よかった。」') : `ピース「${point.hint}を直したよ。」`); updateHud(); }
   function respawn() { const point=checkpoints[world.checkpointIndex]; const platform=platforms.find(p=>p.id===point.platformId); player.x=point.x; player.y=platform ? platform.y-20-player.h : 430; player.vx=0; player.vy=0; player.invulnerable=1.1; }
   function strike(power=1) {
     player.attack = .34; player.attackCooldown = .40; world.stats.attacks++;
@@ -559,10 +559,12 @@
     }
     const reach=power>1?164:98; const hitbox = { x: player.facing > 0 ? player.x + player.w - 3 : player.x-reach+2, y: player.y + 10, w: reach, h: 54 };
     for (const enemy of enemies) if (enemy.alive && rect(hitbox, enemy)) {
+      if(FEATURES.enemyKnockback){enemy.x+=player.facing*46;enemy.dir=player.facing;}
       enemy.alive = false; world.stats.enemies++; addComplete(8); if(FEATURES.hitStop)world.hitStop=.055;
       if (FEATURES.comboMeter) { world.combo++; world.comboTimer=2.6; }
       if (FEATURES.particles) for (let i=0;i<22;i++) world.particles.push({x:enemy.x+28,y:enemy.y+25,vx:(Math.random()-.5)*330,vy:(Math.random()-.7)*310,life:.65,color:'#f04dff'});
     }
+    if(FEATURES.attackOrbBurst && player.orbCharges>0)world.repairWaves.push({x:player.x+player.w/2,y:player.y+34,life:.26,color:'#8ff7ff',max:54});
   }
   function updateHud() { const percent = Math.min(100, Math.round((world.completed * 12 + world.repaired * 26 + enemies.filter(e=>!e.alive).length * 4))); $('#completionValue').textContent = `${percent}%`; $('#completionBar').style.width = `${percent}%`; $('#shardCount').textContent = '◇'.repeat(Math.min(5,world.completed)) + '◆'.repeat(Math.max(0,5-world.completed)); $('#segmentLabel').textContent=`STAGE ${world.currentCourse} / 13　${courseNames[world.currentCourse-1]}`; }
   function beginGateExit() { if (world.gateExit > 0 || world.stageClear) return; world.gateExit=.92; player.vx=0; player.vy=0; player.attack=0; player.groundDash=0; const targetX=goalGate.x+goalGate.w/2, targetY=goalGate.y-46; world.gateExitParticles=[]; for(let y=10;y<112;y+=9) for(let x=-38;x<=38;x+=10) { const delay=((112-y)/112)*.34+Math.random()*.045; world.gateExitParticles.push({x:player.x+player.w/2+x,y:player.y+y,targetX,targetY,delay,duration:.40+Math.random()*.10,size:3+Math.random()*4,color:Math.random()>.42?'#fff3a2':'#60e8ff',spin:(Math.random()-.5)*42}); } closeDialogue(); }
@@ -607,6 +609,7 @@
     if (FEATURES.jumpBuffer && input('jump')) player.jumpBuffer=.13;
     const canJump=player.grounded || (FEATURES.coyoteJump && player.coyote>0);
     if (!world.floating && player.jumpBuffer>0 && canJump) { player.vy=-tuning.jumpVelocity; player.grounded=false; player.coyote=0; player.jumpBuffer=0; world.stats.jumps++; keys.delete(bindings.jump); keys.delete('jump'); }
+    else if (!world.floating && FEATURES.doubleJump && abilities.doubleJump && player.jumpBuffer>0 && player.doubleJumpAvailable) { player.vy=-tuning.jumpVelocity*.9; player.doubleJumpAvailable=false; player.jumpBuffer=0; world.stats.jumps++; world.repairWaves.push({x:player.x+player.w/2,y:player.y+player.h/2,life:.32,color:'#cba8ff',max:46}); keys.delete(bindings.jump); keys.delete('jump'); }
     if (abilities.airDash && !player.grounded && player.airDashAvailable && keys.has('KeyX')) {
       // Lv1=主人公1人分、以後は0.5人分ずつ増加し、Lv5で最大3人分まで届く。
       const distance=player.w*(1+(abilityLevels.airDash-1)*.5);
@@ -624,7 +627,7 @@
       showToast(world.repaired===0?'ピース「あれ？なんで壊れてるんだろう？」':'ピース「あれ？ここも壊れてる。」');
     }
     if (input('repair')) { repair(); keys.delete(bindings.repair); }
-    const copiedGlide=(player.copiedWispTimer>0 || (FEATURES.windCatch && keys.has('KeyW') && player.vy>80)) ? .48 : 1;
+    const copiedGlide=(player.copiedWispTimer>0 || (FEATURES.windCatch && keys.has('KeyW') && player.vy>80) || (FEATURES.glideFlight && abilities.glide && keys.has('KeyW') && !player.grounded)) ? .48 : 1;
     const gravity=world.gravityDirection*tuning.gravity*mechanic('gravityMultiplier')*copiedGlide;
     if (!world.floating) player.vy += gravity * dt; player.x += player.vx*(FEATURES.heightLayer && player.y<mechanic('heightLayerY')?mechanic('heightLayerSpeedMultiplier'):1)*dt; player.y += player.vy*dt; player.grounded=false;
     for (const p of surfaces()) { if(!p.active) continue;
@@ -633,7 +636,7 @@
       const isOnTop=world.gravityDirection>0 && player.y+player.h>=surfaceY && player.y+player.h-player.vy*dt<=surfaceY+12;
       const isOnBottom=world.gravityDirection<0 && player.y<=py+p.h && player.y-player.vy*dt>=py+p.h-12;
       if(descending && player.x+player.w>px && player.x<px+p.w && (isOnTop||isOnBottom)) {
-        const landingSpeed=Math.abs(player.vy); player.y=world.gravityDirection>0 ? surfaceY-player.h : py+p.h; player.vy=0; player.grounded=true; player.coyote=FEATURES.coyoteJump?.10:0; player.airDashAvailable=abilities.airDash; world.lastGround={x:player.x,y:player.y+player.h+20};
+        const landingSpeed=Math.abs(player.vy); player.y=world.gravityDirection>0 ? surfaceY-player.h : py+p.h; player.vy=0; player.grounded=true; player.coyote=FEATURES.coyoteJump?.10:0; player.airDashAvailable=abilities.airDash; player.doubleJumpAvailable=abilities.doubleJump; world.lastGround={x:player.x,y:player.y+player.h+20};
         if (FEATURES.landingDust && wasAirborne && landingSpeed>210) for(let i=0;i<8;i++)world.particles.push({x:player.x+player.w/2,y:surfaceY,vx:(Math.random()-.5)*140,vy:-Math.random()*90,life:.35,color:'#d8f6ff'});
         if(FEATURES.perfectLanding && wasAirborne && landingSpeed>520){world.combo++;world.comboTimer=1.6;showToast('ピース「パーフェクト着地！」');}
         if(FEATURES.groundPound && world.groundPound>0){for(const enemy of enemies)if(enemy.alive&&Math.abs(enemy.x-player.x)<150&&Math.abs(enemy.y-player.y)<100){enemy.stun=1.5;enemy.dir*=-1;}world.groundPound=0;}
@@ -651,7 +654,7 @@
       if (!enemy.alive) continue;
       enemy.stun=Math.max(0,(enemy.stun||0)-dt); if(FEATURES.enemyStun && enemy.stun>0) continue;
       const beat=FEATURES.rhythmPatrol ? .55+Math.abs(Math.sin(world.time*mechanic('rhythmPlatformSpeed')+enemy.phase))*.9 : 1;
-      enemy.x += enemy.speed * enemy.dir * dt * beat * (world.timeShifted ? mechanic('timeShiftEnemyRate') : 1);
+      enemy.x += enemy.speed * enemy.dir * dt * beat * (world.timeShifted || (FEATURES.comboTimeSlow && world.combo>=3) ? mechanic('timeShiftEnemyRate') : 1);
       if (enemy.x < enemy.min || enemy.x > enemy.max) { enemy.dir *= -1; enemy.x = Math.max(enemy.min, Math.min(enemy.max, enemy.x)); }
       // 敵も主人公と同じ重力と足場上面を使う。足場の高さが変わるコースでも沈んだり浮いたりしない。
       enemy.vy=(enemy.vy||0)+tuning.gravity*dt; enemy.y+=enemy.vy*dt;
@@ -662,7 +665,8 @@
     if (FEATURES.collectibles) for (const shard of shards) if (!shard.taken) {
       if (FEATURES.orbMagnet) {
         const dx=(player.x+player.w/2)-shard.x, dy=(player.y+player.h/2)-shard.y, distance=Math.hypot(dx,dy);
-        if (distance<145 && distance>1) { shard.x+=dx/distance*dt*210; shard.y+=dy/distance*dt*210; }
+        const magnetRadius=FEATURES.dashOrbAttract && player.groundDash>0 ? 260 : 145;
+        if (distance<magnetRadius && distance>1) { shard.x+=dx/distance*dt*(player.groundDash>0?430:210); shard.y+=dy/distance*dt*(player.groundDash>0?430:210); }
       }
       if (rect(player,{x:shard.x-20,y:shard.y-20,w:40,h:48})) collect(shard);
     }
@@ -719,6 +723,7 @@
     // 1650pxへ広げた一枚絵を最大380pxだけ移動。繰り返し描画は行わない。
     ctx.drawImage(images.background,-world.backgroundOffset,0,1650,GAME_CONFIG.height);
     if(FEATURES.windParticles){ctx.save();ctx.globalAlpha=.2;ctx.strokeStyle='#c8f7ff';for(let i=0;i<14;i++){const x=(i*113+performance.now()/38)%1380-50,y=135+(i*71)%390;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+32,y-2);ctx.stroke();}ctx.restore();}
+    if(FEATURES.skyGlyphs){ctx.save();ctx.globalAlpha=.24;ctx.fillStyle='#e6ddff';ctx.font='18px serif';for(let i=0;i<6;i++)ctx.fillText(['◇','⌁','✦'][i%3],90+i*210,130+(i%2)*45);ctx.restore();}
     if (FEATURES.speedStreaks && Math.abs(player.vx)>tuning.playerSpeed*.72) { ctx.save();ctx.globalAlpha=.28;ctx.strokeStyle='#b8f9ff';ctx.lineWidth=2;for(let i=0;i<10;i++){const y=170+i*38+(i%2)*9;const x=player.facing>0?80+i*65:810-i*65;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-player.facing*(55+i*6),y);ctx.stroke();}ctx.restore(); }
     ctx.save(); ctx.translate(-world.camera,0);
     for (const p of surfaces()) if(p.active) {
