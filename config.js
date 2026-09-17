@@ -105,6 +105,12 @@ const FEATURES = Object.freeze({
   orbGateFlight: true,
   repairAssembly: true,
   stageFlowHints: true,
+  // アイデア実装バッチ 001（Idea #17, #28, #35, #38, #39）
+  orbRestorationTint: true,
+  enemyColorRecovery: true,
+  orbEmbroidery: true,
+  paperDangerSense: true,
+  ghostConstructionMeteors: true,
 });
 
 const GAME_CONFIG = Object.freeze({
