@@ -128,6 +128,9 @@ const FEATURES = Object.freeze({
   repairCalmsEnemies: true,
   purificationGuideTrail: true,
   repairOutcomePreview: true,
+  // アイデア実装バッチ 007：連続収集と敵のいた場所を、短い移動の選択に変える。
+  orbResonanceSprint: true,
+  enemyMemoryStep: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -187,6 +190,10 @@ const MECHANIC_NUMBERS = Object.freeze({
   repairCalmDuration: 3.6,
   purificationGuideLife: 3.2,
   repairPreviewDistance: 330,
+  orbResonanceWindow: 1.35,
+  orbResonanceSpeedMultiplier: 1.22,
+  orbResonanceDuration: 1.8,
+  enemyMemoryStepLife: 1.45,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({
