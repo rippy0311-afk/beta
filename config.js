@@ -115,6 +115,10 @@ const FEATURES = Object.freeze({
   checkpointFailureChronicle: true,
   patientEnemyPause: true,
   purificationColorRecovery: true,
+  // アイデア実装バッチ 003（Idea #5, #12, #29）
+  repairSignCompletion: true,
+  futureWindowRestoration: true,
+  residentLanternTrail: true,
 });
 
 const GAME_CONFIG = Object.freeze({
