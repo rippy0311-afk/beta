@@ -154,6 +154,7 @@ const MECHANIC_NUMBERS = Object.freeze({
   shadowGuideDistance: 72,
   orbGateFlightDuration: 0.56,
   repairAssemblyDuration: 0.72,
+  airDashDuration: 0.18,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({

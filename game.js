@@ -616,7 +616,10 @@
     if (abilities.airDash && !player.grounded && player.airDashAvailable && keys.has('KeyX')) {
       // Lv1=主人公1人分、以後は0.5人分ずつ増加し、Lv5で最大3人分まで届く。
       const distance=player.w*(1+(abilityLevels.airDash-1)*.5);
-      player.airDashAvailable=false; player.airDash=.18; player.vx=player.facing*distance/.18; player.vy=-35; world.stats.dashes++;
+      const airDashDuration=mechanic('airDashDuration');
+      // Air Dash は移動速度を上書きせず、一人分の追加移動量を現在の慣性へ加える。
+      // これにより走行中に遅くならず、「向いている方向へ加速する」能力になる。
+      player.airDashAvailable=false; player.airDash=airDashDuration; player.vx=player.facing*(Math.max(Math.abs(player.vx),tuning.playerSpeed)+distance/airDashDuration); player.vy=-35; world.stats.dashes++;
       if(FEATURES.airDashRing) world.repairWaves.push({x:player.x+player.w/2,y:player.y+player.h/2,life:.38,color:'#ffe45a',max:64});
       if(FEATURES.dashAfterimages) for(let i=0;i<5;i++)world.afterimages.push({x:player.x-player.facing*i*14,y:player.y+i*2,life:.30-i*.035,color:'#fff09a'});
       if(FEATURES.dashPlatforms) addTemporaryPlatform(player.x-30,player.y+player.h+18,112,20,mechanic('dashPlatformLife'),'dash');
