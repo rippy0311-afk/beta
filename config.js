@@ -101,6 +101,10 @@ const FEATURES = Object.freeze({
   checkpointWind: true,
   orbBounce: true,
   skyGlyphs: true,
+  // Chapter 1 の「集める→直す→進む」を見える形にする演出。OFFでも進行条件は変わりません。
+  orbGateFlight: true,
+  repairAssembly: true,
+  stageFlowHints: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -148,13 +152,23 @@ const MECHANIC_NUMBERS = Object.freeze({
   orbThrowLife: 1.1,
   particleStealthMinimum: 0.18,
   shadowGuideDistance: 72,
+  orbGateFlightDuration: 0.56,
+  repairAssemblyDuration: 0.72,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({
   1: { windPlatformAmplitude: 3, rhythmPlatformAmplitude: 0 },
+  2: { windPlatformAmplitude: 7, rhythmPlatformAmplitude: 2 },
   3: { windPlatformAmplitude: 12, rhythmPlatformAmplitude: 4 },
+  4: { windPlatformAmplitude: 5, rhythmPlatformAmplitude: 1 },
   5: { windPlatformAmplitude: 16, dashPlatformLife: 2.1, rainStairLife: 2.0 },
+  6: { windPlatformAmplitude: 7, rhythmPlatformAmplitude: 5 },
+  7: { windPlatformAmplitude: 10, rhythmPlatformAmplitude: 2 },
+  8: { windPlatformAmplitude: 7, rhythmPlatformAmplitude: 5 },
+  9: { windPlatformAmplitude: 4, rhythmPlatformAmplitude: 7 },
   10: { windBridgeAmplitude: 30, rhythmPlatformAmplitude: 10 },
+  11: { windPlatformAmplitude: 8, rhythmPlatformAmplitude: 3 },
+  12: { windPlatformAmplitude: 13, rhythmPlatformAmplitude: 6 },
   13: { windPlatformAmplitude: 0, rhythmPlatformAmplitude: 0, footstepPlatformLife: 4.4 },
 });
 
