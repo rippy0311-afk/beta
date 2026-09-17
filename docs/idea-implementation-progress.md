@@ -9,5 +9,6 @@ The source list contains 2,000 broad concepts. This file records only ideas that
 | 003 | 5, 12, 29 | Construction signs change from TODO to DONE after a repair; future windows brighten as restoration proceeds; restored residents cast a lantern trail toward the next orb or gate. | `repairSignCompletion`, `futureWindowRestoration`, `residentLanternTrail` | Implemented |
 | 004 | 6 | Collecting three orbs without landing calls down a short-lived star-constellation platform beneath Ren. | `constellationBridge` | Implemented |
 | 005 | 40, 42 | Previously restored islands glow in the far distance; unrepaired foundations read as an unknown blueprint from afar and resolve into a usable repair site as Ren approaches. | `distantRestorationIslands`, `repairDiscoverySilhouette` | Implemented |
+| 006 | New: repair calm, purification guide, repair outcome preview | Repairing briefly pacifies nearby enemies; a defeated or purified enemy leaves a luminous trail to the next repair, orb, or gate; standing near a foundation previews the route it will build. | `repairCalmsEnemies`, `purificationGuideTrail`, `repairOutcomePreview` | Implemented |
 
-Progress: 14 / 1,000 target ideas implemented or concretely tracked.
+Progress: 17 / 1,000 target ideas implemented or concretely tracked.

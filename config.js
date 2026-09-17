@@ -124,6 +124,10 @@ const FEATURES = Object.freeze({
   // アイデア実装バッチ 005（Idea #40, #42）
   distantRestorationIslands: true,
   repairDiscoverySilhouette: true,
+  // アイデア実装バッチ 006：修復を「敵を遠ざける選択」と「道の予見」にする。
+  repairCalmsEnemies: true,
+  purificationGuideTrail: true,
+  repairOutcomePreview: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -179,6 +183,10 @@ const MECHANIC_NUMBERS = Object.freeze({
   constellationBridgeOrbs: 3,
   constellationBridgeLife: 2.8,
   repairDiscoveryDistance: 260,
+  repairCalmRadius: 250,
+  repairCalmDuration: 3.6,
+  purificationGuideLife: 3.2,
+  repairPreviewDistance: 330,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({
