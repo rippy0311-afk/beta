@@ -111,6 +111,10 @@ const FEATURES = Object.freeze({
   orbEmbroidery: true,
   paperDangerSense: true,
   ghostConstructionMeteors: true,
+  // アイデア実装バッチ 002（Idea #8, #14, #19）
+  checkpointFailureChronicle: true,
+  patientEnemyPause: true,
+  purificationColorRecovery: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -161,6 +165,8 @@ const MECHANIC_NUMBERS = Object.freeze({
   orbGateFlightDuration: 0.56,
   repairAssemblyDuration: 0.72,
   airDashDuration: 0.18,
+  patientEnemyWatchTime: 1.7,
+  patientEnemyPauseTime: 2.4,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({
