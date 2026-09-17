@@ -12,5 +12,6 @@ The source list contains 2,000 broad concepts. This file records only ideas that
 | 006 | New: repair calm, purification guide, repair outcome preview | Repairing briefly pacifies nearby enemies; a defeated or purified enemy leaves a luminous trail to the next repair, orb, or gate; standing near a foundation previews the route it will build. | `repairCalmsEnemies`, `purificationGuideTrail`, `repairOutcomePreview` | Implemented |
 | 007 | New: orb resonance sprint, enemy memory step | Rapidly collecting two or more orbs gives Ren a short speed resonance; defeated or purified enemies leave a brief, standable echo-step where they were. | `orbResonanceSprint`, `enemyMemoryStep` | Implemented |
 | 008 | 2 | Pressing C spends one held orb and converts its short arc into a temporary construction platform in front of Ren. | `orbBuildPlatform` | Implemented |
+| 009 | New: orb safety net | On a deep fall, one held orb is consumed to create a single emergency platform before Ren respawns. | `orbSafetyNet` | Implemented |
 
-Progress: 20 / 1,000 target ideas implemented or concretely tracked.
+Progress: 21 / 1,000 target ideas implemented or concretely tracked.

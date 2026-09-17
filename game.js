@@ -83,7 +83,7 @@
   images.memoryFragment.src = 'assets/narrative/memory-fragment.png';
 
   const world = { camera: 0, backgroundOffset: 0, started: !FEATURES.titleScreen, completed: 0, complete: 0, messageShown: false, particles: [], afterimages:[], repairWaves:[], attackFlash:0, gateExit:0, gateExitParticles:[], hitStop:0, temporaryPlatforms:[], footsteps:[], history:[], thrownOrbs:[], orbFlights:[], repairBuilds:[], bellWaves:[], guideEchoes:[], orbChain:0, orbChainTimer:0, gravityDirection:1, timeShifted:false, todoTimer:0, lastGround:null, narrative:null, stageDesign:null, colorRecovery:0, fragmentTaken:false, residentSpoken:false, signShown:false, idleLoreShown:false, idleTime:0, mapOpen:false, boundaryMode:false, boundarySeen:false, boundaryPlatforms:[], repairCombo:0, repairComboTimer:0, recoveryGlow:0, groundPound:0, menuOpen: false, controlGuide:false, developerOpen: false, courseSelect: false, clearedCourses: 0, currentCourse: 1, floating: false, stageClear: false, gateHintShown: false, guideSeen: false, repaired: 0, time: 0, checkpointIndex: 0, dialogueOpen: false, toastTimer: null, toastCountdownTimer: null, toastEndsAt: 0, autoSaveTimer: null, combo: 0, comboTimer: 0, stageBanner: 0, stageTipShown: false, stats:{orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0} };
-  const player = { x: 110, y: 450, w: 46, h: 74, vx: 0, vy: 0, grounded: false, facing: 1, walkClock: 0, groundDash: 0, dashCooldown: 0, invulnerable: 0, attack: 0, attackCooldown: 0, airDashAvailable: false, airDash: 0, coyote:0, jumpBuffer:0, orbCharges:0, lastFootstepCell:null, copiedWispCharges:0, copiedWispTimer:0, charging:0, chargeReady:false };
+  const player = { x: 110, y: 450, w: 46, h: 74, vx: 0, vy: 0, grounded: false, facing: 1, walkClock: 0, groundDash: 0, dashCooldown: 0, invulnerable: 0, attack: 0, attackCooldown: 0, airDashAvailable: false, airDash: 0, coyote:0, jumpBuffer:0, orbCharges:0, safetyNetAvailable:true, lastFootstepCell:null, copiedWispCharges:0, copiedWispTimer:0, charging:0, chargeReady:false };
   // 速度を維持しながら渡る、長い浮島スプリント航路。着地点と次の目印を常に画面内に置く。
   const platforms = [
     ['start',0,580,440,60], ['p01',510,530,230,50], ['bridge-a',800,470,190,50], ['p02',1060,540,270,60],
@@ -661,7 +661,7 @@
       const isOnTop=world.gravityDirection>0 && player.y+player.h>=surfaceY && player.y+player.h-player.vy*dt<=surfaceY+12;
       const isOnBottom=world.gravityDirection<0 && player.y<=py+p.h && player.y-player.vy*dt>=py+p.h-12;
       if(descending && player.x+player.w>px && player.x<px+p.w && (isOnTop||isOnBottom)) {
-        const landingSpeed=Math.abs(player.vy); player.y=world.gravityDirection>0 ? surfaceY-player.h : py+p.h; player.vy=0; player.grounded=true; player.coyote=FEATURES.coyoteJump?.10:0; player.airDashAvailable=abilities.airDash; player.doubleJumpAvailable=abilities.doubleJump; world.lastGround={x:player.x,y:player.y+player.h+20};
+        const landingSpeed=Math.abs(player.vy); player.y=world.gravityDirection>0 ? surfaceY-player.h : py+p.h; player.vy=0; player.grounded=true; player.coyote=FEATURES.coyoteJump?.10:0; player.airDashAvailable=abilities.airDash; player.doubleJumpAvailable=abilities.doubleJump; player.safetyNetAvailable=true; world.lastGround={x:player.x,y:player.y+player.h+20};
         if (FEATURES.landingDust && wasAirborne && landingSpeed>210) for(let i=0;i<8;i++)world.particles.push({x:player.x+player.w/2,y:surfaceY,vx:(Math.random()-.5)*140,vy:-Math.random()*90,life:.35,color:'#d8f6ff'});
         if(FEATURES.perfectLanding && wasAirborne && landingSpeed>520){world.combo++;world.comboTimer=1.6;showToast('ピース「パーフェクト着地！」');}
         if(FEATURES.groundPound && world.groundPound>0){for(const enemy of enemies)if(enemy.alive&&Math.abs(enemy.x-player.x)<150&&Math.abs(enemy.y-player.y)<100){enemy.stun=1.5;enemy.dir*=-1;}world.groundPound=0;}
@@ -672,6 +672,7 @@
       player.x = goalGate.x - player.w; player.vx = 0;
       if (!world.gateHintShown) { world.gateHintShown=true; showToast(`ピース「あと ${shards.length-world.completed} 個のオーブが必要だよ。集めたオーブがゲートのレンガになるんだ。」`); }
     }
+    if(FEATURES.orbSafetyNet && player.safetyNetAvailable && player.orbCharges>0 && player.vy>0 && player.y>mechanic('orbSafetyNetHeight') && player.y<750){player.safetyNetAvailable=false;player.orbCharges--;addTemporaryPlatform(player.x-56,player.y+player.h+18,112,18,mechanic('orbSafetyNetLife'),'orb-net');player.vy=-170;showToast('ピース「オーブが安全網になった！」');}
     if (player.y>750 || player.y<-130) { if(FEATURES.fallAssist && world.lastGround)addTemporaryPlatform(world.lastGround.x-50,world.lastGround.y,mechanic('fallAssistWidth'),22,mechanic('fallAssistLife'),'assist'); respawn('fall'); }
     player.invulnerable = Math.max(0, player.invulnerable-dt);
     player.attack = Math.max(0, player.attack-dt); player.groundDash = Math.max(0,player.groundDash-dt); player.dashCooldown = Math.max(0,player.dashCooldown-dt); player.airDash = Math.max(0,player.airDash-dt); player.attackCooldown = Math.max(0, player.attackCooldown-dt); player.copiedWispTimer=Math.max(0,(player.copiedWispTimer||0)-dt); world.repairComboTimer=Math.max(0,world.repairComboTimer-dt); if(!world.repairComboTimer)world.repairCombo=0; world.recoveryGlow=Math.max(0,world.recoveryGlow-dt); world.groundPound=Math.max(0,world.groundPound-dt);
@@ -776,7 +777,7 @@
     for (const p of surfaces()) if(p.active) {
       // 修復前の基礎は active=false のため、見た目だけでなく当たり判定も存在しない。
       const px=platformX(p),py=platformY(p);
-      if(p.temp){ctx.save();ctx.globalAlpha=Math.min(1,p.life/.32);ctx.fillStyle=p.type==='rain'?'#8cefff':p.type==='blueprint'?'#b6a5ff':p.type==='assist'?'#fff2a5':p.type==='constellation'?'#d8c7ff':p.type==='orb-build'?'#72ecff':'#8cffdf';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=p.type==='constellation'?18:12;ctx.fillRect(px,py,p.w,p.h);if(p.type==='constellation'){ctx.fillStyle='#fff6ba';for(let i=10;i<p.w;i+=28)ctx.fillRect(px+i,py+7,4,4);}if(p.type==='orb-build'){ctx.fillStyle='#edffff';ctx.fillRect(px+p.w/2-4,py+4,8,8);}ctx.restore();}
+      if(p.temp){ctx.save();ctx.globalAlpha=Math.min(1,p.life/.32);ctx.fillStyle=p.type==='rain'?'#8cefff':p.type==='blueprint'?'#b6a5ff':p.type==='assist'?'#fff2a5':p.type==='constellation'?'#d8c7ff':p.type==='orb-build'?'#72ecff':p.type==='orb-net'?'#ffe78a':'#8cffdf';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=p.type==='constellation'?18:12;ctx.fillRect(px,py,p.w,p.h);if(p.type==='constellation'){ctx.fillStyle='#fff6ba';for(let i=10;i<p.w;i+=28)ctx.fillRect(px+i,py+7,4,4);}if(p.type==='orb-build'||p.type==='orb-net'){ctx.fillStyle='#edffff';ctx.fillRect(px+p.w/2-4,py+4,8,8);}ctx.restore();}
       else if(images.terrain.complete && images.terrain.naturalWidth) drawImagePart(images.terrain,0,0,images.terrain.naturalWidth,images.terrain.naturalHeight,px,py-18,p.w,p.h+70);
     }
     // 未完成のアーチ。青いオーブレンガが1個ずつ増え、全14個で出口が開く。

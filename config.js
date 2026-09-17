@@ -133,6 +133,8 @@ const FEATURES = Object.freeze({
   enemyMemoryStep: true,
   // アイデア実装バッチ 008：所持オーブを一つ使い、進行方向に仮設足場を組む。
   orbBuildPlatform: true,
+  // アイデア実装バッチ 009：落下中、所持オーブで一度だけ緊急足場を作れる。
+  orbSafetyNet: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -198,6 +200,8 @@ const MECHANIC_NUMBERS = Object.freeze({
   enemyMemoryStepLife: 1.45,
   orbBuildDelay: 0.3,
   orbBuildPlatformLife: 3.1,
+  orbSafetyNetLife: 2.7,
+  orbSafetyNetHeight: 650,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({
