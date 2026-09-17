@@ -738,6 +738,20 @@
     if(FEATURES.ghostConstructionMeteors){ctx.save();ctx.globalAlpha=.24;ctx.strokeStyle='#c5a8ff';ctx.lineWidth=2;for(let i=0;i<7;i++){const x=(i*193+world.time*72)%1450-90,y=112+(i*83)%370;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+34,y+48);ctx.lineTo(x+47,y+30);ctx.stroke();ctx.fillStyle='#fff0af';ctx.fillRect(x+44,y+28,4,4);}ctx.restore();}
     if(FEATURES.windParticles){ctx.save();ctx.globalAlpha=.2;ctx.strokeStyle='#c8f7ff';for(let i=0;i<14;i++){const x=(i*113+performance.now()/38)%1380-50,y=135+(i*71)%390;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+32,y-2);ctx.stroke();}ctx.restore();}
     if(FEATURES.skyGlyphs){ctx.save();ctx.globalAlpha=.24;ctx.fillStyle='#e6ddff';ctx.font='18px serif';for(let i=0;i<6;i++)ctx.fillText(['◇','⌁','✦'][i%3],90+i*210,130+(i%2)*45);ctx.restore();}
+    // 他のコースで直した島を、現在のコースの遠景にも小さく灯す。進行がアルケア全体へ
+    // つながっていることを示すだけの演出なので、OFFにしても地形・進行は変わらない。
+    if(FEATURES.distantRestorationIslands && world.clearedCourses>0){
+      const restored=Math.min(6,world.clearedCourses);
+      ctx.save();ctx.globalCompositeOperation='screen';
+      for(let i=0;i<restored;i++){
+        const x=94+i*214+(i%2)*31, y=116+(i%3)*34;
+        const pulse=.42+Math.sin(world.time*1.4+i)*.11;
+        ctx.globalAlpha=pulse;ctx.fillStyle=['#7eeaff','#c4a5ff','#ffe49a'][i%3];ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=15;
+        ctx.beginPath();ctx.moveTo(x-30,y);ctx.lineTo(x+34,y-5);ctx.lineTo(x+15,y+18);ctx.lineTo(x-9,y+25);ctx.closePath();ctx.fill();
+        ctx.fillStyle='#f7fdff';ctx.fillRect(x-3,y-12,7,12);ctx.fillRect(x-11,y-4,24,5);
+      }
+      ctx.restore();
+    }
     if (FEATURES.speedStreaks && Math.abs(player.vx)>tuning.playerSpeed*.72) { ctx.save();ctx.globalAlpha=.28;ctx.strokeStyle='#b8f9ff';ctx.lineWidth=2;for(let i=0;i<10;i++){const y=170+i*38+(i%2)*9;const x=player.facing>0?80+i*65:810-i*65;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-player.facing*(55+i*6),y);ctx.stroke();}ctx.restore(); }
     ctx.save(); ctx.translate(-world.camera,0);
     for (const p of surfaces()) if(p.active) {
@@ -778,9 +792,21 @@
     for (const point of repairPoints) {
       // E修復の対象は露出した非可動の基礎。完成後は対応する建築物として表示する。
       const repairImage=point.repaired ? images.repairAfter : images.repairBefore;
-      if(repairImage.complete && repairImage.naturalWidth) ctx.drawImage(repairImage,point.x-120,point.y-86,240,128);
+      const discoveryDistance=mechanic('repairDiscoveryDistance');
+      const discovery=Math.min(1,Math.hypot(player.x+player.w/2-point.x,player.y+player.h/2-point.y)/discoveryDistance);
+      if(repairImage.complete && repairImage.naturalWidth){
+        ctx.save();
+        // 未修復の基礎は遠くでは「何になるのか分からない」設計図の影として見え、
+        // 近づくほど実際の基礎と E 修復がはっきりする。
+        if(FEATURES.repairDiscoverySilhouette && !point.repaired) ctx.globalAlpha=.22+.78*(1-discovery);
+        ctx.drawImage(repairImage,point.x-120,point.y-86,240,128);
+        ctx.restore();
+      }
+      if(FEATURES.repairDiscoverySilhouette && !point.repaired && discovery>.18){
+        ctx.save();ctx.translate(point.x,point.y-100);ctx.globalAlpha=Math.min(.9,discovery*.85);ctx.strokeStyle='#aeeeff';ctx.shadowColor='#67e8ff';ctx.shadowBlur=12;ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(0,0,15+Math.sin(world.time*3)*2,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#eaffff';ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.fillText('未確認の修復設計',0,-25);ctx.textAlign='start';ctx.restore();
+      }
       if(FEATURES.bridgeNames && point.repaired){ctx.save();ctx.fillStyle='#fff0ac';ctx.shadowColor='#ffce5a';ctx.shadowBlur=8;ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText(`修復済み：${point.hint}`,point.x,point.y-96);ctx.textAlign='start';ctx.restore();}
-      if(!point.repaired) { ctx.save();ctx.translate(point.x,point.y);ctx.strokeStyle='#fff39c';ctx.lineWidth=3;ctx.shadowColor='#f6e767';ctx.shadowBlur=16;ctx.strokeRect(-15,-15,30,30);ctx.fillStyle='#fff6b6';ctx.font='bold 13px sans-serif';ctx.fillText('E 修復',-25,-25);ctx.restore(); }
+      if(!point.repaired && (!FEATURES.repairDiscoverySilhouette || discovery<.72)) { ctx.save();ctx.translate(point.x,point.y);ctx.strokeStyle='#fff39c';ctx.lineWidth=3;ctx.shadowColor='#f6e767';ctx.shadowBlur=16;ctx.strokeRect(-15,-15,30,30);ctx.fillStyle='#fff6b6';ctx.font='bold 13px sans-serif';ctx.fillText('E 修復',-25,-25);ctx.restore(); }
     }
     if(FEATURES.repairAssembly) for(const build of world.repairBuilds) {
       const progress=1-build.life/build.max;
