@@ -119,6 +119,8 @@ const FEATURES = Object.freeze({
   repairSignCompletion: true,
   futureWindowRestoration: true,
   residentLanternTrail: true,
+  // アイデア実装バッチ 004（Idea #6）
+  constellationBridge: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -171,6 +173,8 @@ const MECHANIC_NUMBERS = Object.freeze({
   airDashDuration: 0.18,
   patientEnemyWatchTime: 1.7,
   patientEnemyPauseTime: 2.4,
+  constellationBridgeOrbs: 3,
+  constellationBridgeLife: 2.8,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({

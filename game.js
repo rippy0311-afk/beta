@@ -128,6 +128,7 @@
     world.stageDesign=(window.BETA_STAGE_DESIGN || {})[number] || null;
     world.colorRecovery=0;
     world.checkpointFailures={};
+    world.airOrbChain=0;
     world.orbFlights=[];
     world.repairBuilds=[];
     world.fragmentTaken=false; world.residentSpoken=false; world.signShown=false; world.idleLoreShown=false; world.idleTime=0; world.echoShown=false;
@@ -542,7 +543,7 @@
     if(FEATURES.idleLore) { world.idleTime=Math.abs(player.vx)<5 ? world.idleTime+dt : 0; if(world.idleTime>5 && !world.idleLoreShown) { world.idleLoreShown=true; showToast(`ピース「${story.memory}」`); } }
   }
   function addComplete(value) { world.complete=Math.min(100,world.complete+value); $('#completeBar').style.width=`${world.complete}%`; }
-  function collect(shard) { shard.taken = true; world.completed++; world.stats.orbs++; player.orbCharges++; if(FEATURES.orbRestorationTint) world.colorRecovery=Math.min(1,world.colorRecovery+.065); if(FEATURES.orbGateFlight) world.orbFlights.push({x:shard.x,y:shard.y,targetX:goalGate.x+goalGate.w/2,targetY:goalGate.y-74,life:mechanic('orbGateFlightDuration'),max:mechanic('orbGateFlightDuration')}); if(FEATURES.dashRefillOnOrb && !player.grounded){player.airDashAvailable=abilities.airDash;showToast('ピース「オーブでAir Dashが戻った！」');} if(FEATURES.orbBounce && !player.grounded)player.vy=Math.min(player.vy,-210); addComplete(10); if (FEATURES.particles) for (let i=0;i<16;i++) world.particles.push({x:shard.x,y:shard.y,vx:(Math.random()-.5)*240,vy:(Math.random()-.8)*250,life:1}); if(FEATURES.orbTrail) for(let i=0;i<10;i++) world.particles.push({x:shard.x,y:shard.y,vx:(Math.random()-.5)*160,vy:-40-Math.random()*170,life:.45,color:'#8cf7ff'}); updateHud(); }
+  function collect(shard) { shard.taken = true; world.completed++; world.stats.orbs++; player.orbCharges++; if(FEATURES.orbRestorationTint) world.colorRecovery=Math.min(1,world.colorRecovery+.065); if(FEATURES.constellationBridge){world.airOrbChain=player.grounded?0:(world.airOrbChain||0)+1;if(world.airOrbChain>=mechanic('constellationBridgeOrbs')){world.airOrbChain=0;addTemporaryPlatform(player.x-56,player.y+player.h+32,164,20,mechanic('constellationBridgeLife'),'constellation');showToast('ピース「星座が足場になった！」');}} if(FEATURES.orbGateFlight) world.orbFlights.push({x:shard.x,y:shard.y,targetX:goalGate.x+goalGate.w/2,targetY:goalGate.y-74,life:mechanic('orbGateFlightDuration'),max:mechanic('orbGateFlightDuration')}); if(FEATURES.dashRefillOnOrb && !player.grounded){player.airDashAvailable=abilities.airDash;showToast('ピース「オーブでAir Dashが戻った！」');} if(FEATURES.orbBounce && !player.grounded)player.vy=Math.min(player.vy,-210); addComplete(10); if (FEATURES.particles) for (let i=0;i<16;i++) world.particles.push({x:shard.x,y:shard.y,vx:(Math.random()-.5)*240,vy:(Math.random()-.8)*250,life:1}); if(FEATURES.orbTrail) for(let i=0;i<10;i++) world.particles.push({x:shard.x,y:shard.y,vx:(Math.random()-.5)*160,vy:-40-Math.random()*170,life:.45,color:'#8cf7ff'}); updateHud(); }
   function saveCheckpoint() {
     if (!FEATURES.autoSave || !FEATURES.saveData) return;
     const slotIndex=activeSaveSlot ?? 0;
@@ -742,7 +743,7 @@
     for (const p of surfaces()) if(p.active) {
       // 修復前の基礎は active=false のため、見た目だけでなく当たり判定も存在しない。
       const px=platformX(p),py=platformY(p);
-      if(p.temp){ctx.save();ctx.globalAlpha=Math.min(1,p.life/.32);ctx.fillStyle=p.type==='rain'?'#8cefff':p.type==='blueprint'?'#b6a5ff':p.type==='assist'?'#fff2a5':'#8cffdf';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=12;ctx.fillRect(px,py,p.w,p.h);ctx.restore();}
+      if(p.temp){ctx.save();ctx.globalAlpha=Math.min(1,p.life/.32);ctx.fillStyle=p.type==='rain'?'#8cefff':p.type==='blueprint'?'#b6a5ff':p.type==='assist'?'#fff2a5':p.type==='constellation'?'#d8c7ff':'#8cffdf';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=p.type==='constellation'?18:12;ctx.fillRect(px,py,p.w,p.h);if(p.type==='constellation'){ctx.fillStyle='#fff6ba';for(let i=10;i<p.w;i+=28)ctx.fillRect(px+i,py+7,4,4);}ctx.restore();}
       else if(images.terrain.complete && images.terrain.naturalWidth) drawImagePart(images.terrain,0,0,images.terrain.naturalWidth,images.terrain.naturalHeight,px,py-18,p.w,p.h+70);
     }
     // 未完成のアーチ。青いオーブレンガが1個ずつ増え、全14個で出口が開く。
