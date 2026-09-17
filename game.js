@@ -530,8 +530,8 @@
   }
   function throwOrb() {
     if (!FEATURES.orbThrow || player.orbCharges<=0) return;
-    player.orbCharges--; world.thrownOrbs.push({x:player.x+player.w/2,y:player.y+28,vx:player.facing*mechanic('orbThrowSpeed'),vy:-90,life:mechanic('orbThrowLife')});
-    showToast('ピース「オーブを投げた！」');
+    player.orbCharges--; world.thrownOrbs.push({x:player.x+player.w/2,y:player.y+28,vx:player.facing*mechanic('orbThrowSpeed'),vy:-90,life:mechanic('orbThrowLife'),age:0,buildable:FEATURES.orbBuildPlatform});
+    showToast(FEATURES.orbBuildPlatform?'ピース「オーブを足場に変える！」':'ピース「オーブを投げた！」');
   }
   function startBoundaryExpedition() {
     if(!FEATURES.boundaryExpedition || world.clearedCourses<13) return;
@@ -699,7 +699,7 @@
     if(FEATURES.footstepMemory && player.grounded){const cell=Math.round((player.x+player.w/2)/mechanic('footstepCellSize'));if(cell!==player.lastFootstepCell){const revisited=world.footsteps.includes(cell);world.footsteps.push(cell);world.footsteps=world.footsteps.slice(-mechanic('footstepMemoryWindow'));player.lastFootstepCell=cell;if(revisited)addTemporaryPlatform(player.x+player.facing*82,player.y+player.h+26,mechanic('footstepPlatformWidth'),20,mechanic('footstepPlatformLife'),'memory');}}
     if(FEATURES.blueprintWalk) for(const point of repairPoints) if(!point.repaired && Math.abs(player.x-point.x)<85 && player.groundDash>0 && (point.blueprintUntil||0)<world.time){point.blueprintUntil=world.time+mechanic('blueprintLife');addTemporaryPlatform(point.x-92,point.y+18,184,20,mechanic('blueprintLife'),'blueprint');}
     world.history.push({x:player.x,y:player.y,vx:player.vx}); if(world.history.length>150)world.history.shift();
-    for(const orb of world.thrownOrbs){orb.x+=orb.vx*dt;orb.y+=orb.vy*dt;orb.vy+=tuning.gravity*mechanic('orbThrowGravityMultiplier')*dt;for(const enemy of enemies)if(enemy.alive&&rect({x:orb.x-10,y:orb.y-10,w:20,h:20},enemy)){purgeEnemy(enemy);orb.life=0;}}
+    for(const orb of world.thrownOrbs){orb.age=(orb.age||0)+dt;orb.x+=orb.vx*dt;orb.y+=orb.vy*dt;orb.vy+=tuning.gravity*mechanic('orbThrowGravityMultiplier')*dt;if(orb.buildable&&orb.age>=mechanic('orbBuildDelay')){addTemporaryPlatform(orb.x-52,orb.y+14,104,18,mechanic('orbBuildPlatformLife'),'orb-build');orb.life=0;if(FEATURES.particles)for(let i=0;i<12;i++)world.particles.push({x:orb.x,y:orb.y,vx:(Math.random()-.5)*160,vy:-30-Math.random()*110,life:.45,color:'#9af8ff'});}for(const enemy of enemies)if(enemy.alive&&rect({x:orb.x-10,y:orb.y-10,w:20,h:20},enemy)){purgeEnemy(enemy);orb.life=0;}}
     world.thrownOrbs=world.thrownOrbs.filter(orb=>(orb.life-=dt)>0);
     world.orbFlights=world.orbFlights.filter(flight=>(flight.life-=dt)>0);
     world.repairBuilds=world.repairBuilds.filter(build=>(build.life-=dt)>0);
@@ -776,7 +776,7 @@
     for (const p of surfaces()) if(p.active) {
       // 修復前の基礎は active=false のため、見た目だけでなく当たり判定も存在しない。
       const px=platformX(p),py=platformY(p);
-      if(p.temp){ctx.save();ctx.globalAlpha=Math.min(1,p.life/.32);ctx.fillStyle=p.type==='rain'?'#8cefff':p.type==='blueprint'?'#b6a5ff':p.type==='assist'?'#fff2a5':p.type==='constellation'?'#d8c7ff':'#8cffdf';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=p.type==='constellation'?18:12;ctx.fillRect(px,py,p.w,p.h);if(p.type==='constellation'){ctx.fillStyle='#fff6ba';for(let i=10;i<p.w;i+=28)ctx.fillRect(px+i,py+7,4,4);}ctx.restore();}
+      if(p.temp){ctx.save();ctx.globalAlpha=Math.min(1,p.life/.32);ctx.fillStyle=p.type==='rain'?'#8cefff':p.type==='blueprint'?'#b6a5ff':p.type==='assist'?'#fff2a5':p.type==='constellation'?'#d8c7ff':p.type==='orb-build'?'#72ecff':'#8cffdf';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=p.type==='constellation'?18:12;ctx.fillRect(px,py,p.w,p.h);if(p.type==='constellation'){ctx.fillStyle='#fff6ba';for(let i=10;i<p.w;i+=28)ctx.fillRect(px+i,py+7,4,4);}if(p.type==='orb-build'){ctx.fillStyle='#edffff';ctx.fillRect(px+p.w/2-4,py+4,8,8);}ctx.restore();}
       else if(images.terrain.complete && images.terrain.naturalWidth) drawImagePart(images.terrain,0,0,images.terrain.naturalWidth,images.terrain.naturalHeight,px,py-18,p.w,p.h+70);
     }
     // 未完成のアーチ。青いオーブレンガが1個ずつ増え、全14個で出口が開く。

@@ -131,6 +131,8 @@ const FEATURES = Object.freeze({
   // アイデア実装バッチ 007：連続収集と敵のいた場所を、短い移動の選択に変える。
   orbResonanceSprint: true,
   enemyMemoryStep: true,
+  // アイデア実装バッチ 008：所持オーブを一つ使い、進行方向に仮設足場を組む。
+  orbBuildPlatform: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -194,6 +196,8 @@ const MECHANIC_NUMBERS = Object.freeze({
   orbResonanceSpeedMultiplier: 1.22,
   orbResonanceDuration: 1.8,
   enemyMemoryStepLife: 1.45,
+  orbBuildDelay: 0.3,
+  orbBuildPlatformLife: 3.1,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({
