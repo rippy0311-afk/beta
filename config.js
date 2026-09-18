@@ -178,6 +178,8 @@ const FEATURES = Object.freeze({
   resultMedals: true,
   // アイデア実装バッチ 026：達成メダルをコース選択の各島へ持ち帰る。
   courseMedalArchive: true,
+  // アイデア実装バッチ 027：コース選択中に、未獲得メダルの目標を短く示す。
+  courseMedalBriefing: true,
 });
 
 const GAME_CONFIG = Object.freeze({

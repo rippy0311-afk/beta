@@ -340,6 +340,7 @@
     $('#devOrbs').value=world.completed;
   }
   function setDeveloper(open) { if (!FEATURES.developerTools) return; world.developerOpen=open; $('#developerPanel').hidden=!open; if(open) { $('#devX').value=Math.round(player.x); $('#devY').value=Math.round(player.y); $('#devAirDash').value=abilityLevels.airDash; syncDevOrbControl(); $('#devSpeed').focus(); } }
+  function courseMedalBriefing(course) { const record=world.courseMedals[course]; if(!record) return `STAGE ${course}：まだ記録なし。最初のクリアを目指そう。`; const missing=['SPEED','RESTORE','MERCY'].filter(name=>!record.medals.includes(name)); return missing.length ? `STAGE ${course}：最速 ${record.bestTime.toFixed(2)}秒。次は ${missing.join('・')} メダルを狙える。` : `STAGE ${course}：3つのメダルをすべて達成！ 最速 ${record.bestTime.toFixed(2)}秒。`; }
   function renderCourseMap() {
     document.querySelectorAll('.course-route path').forEach((path) => path.classList.toggle('is-visible',Number(path.dataset.step)<=world.clearedCourses));
     document.querySelectorAll('.course-node').forEach((node) => {
@@ -357,6 +358,7 @@
       medalMark.hidden=!record; if(record){medalMark.textContent=`◆${record.medals.length}/3`; medalMark.title=`達成メダル ${record.medals.length}/3　最速 ${record.bestTime.toFixed(2)}秒`;}
       node.style.setProperty('--island-image',`url("assets/stages/Chapter1/stage-${String(course).padStart(2,'0')}-island.png")`);
       node.classList.toggle('cleared',cleared); node.classList.toggle('available',available); node.classList.toggle('locked',!cleared&&!available); node.disabled=!cleared&&!available;
+      node.onfocus=()=>{ if(FEATURES.courseMedalBriefing) $('#courseMessage').textContent=courseMedalBriefing(course); };
     });
   }
   function showCourseSelect(message='次の行き先を選んでください。') { setDeveloper(false); setControlGuide(false); world.courseSelect=true; world.menuOpen=false; $('#pauseMenu').hidden=true; closeDialogue(); $('#courseSelect').hidden=false; renderCourseMap(); $('#courseMessage').textContent=message; }
