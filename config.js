@@ -176,6 +176,8 @@ const FEATURES = Object.freeze({
   stageWindLaneUpdrafts: true,
   // アイデア実装バッチ 025：結果を次の挑戦の目標にするコースメダル。
   resultMedals: true,
+  // アイデア実装バッチ 026：達成メダルをコース選択の各島へ持ち帰る。
+  courseMedalArchive: true,
 });
 
 const GAME_CONFIG = Object.freeze({

@@ -7,6 +7,7 @@
   const bindings = { ...defaultBindings };
   const SETTINGS_KEY = 'beta.settings.v1';
   const WORLD_PROGRESS_KEY = 'beta.world-progress.v1';
+  const COURSE_MEDALS_KEY = 'beta.course-medals.v1';
   const AUTOSAVE_NOTICE_KEY = 'beta.autosave-notice.v1';
   const SLOT_KEYS = ['beta.save.v1.1', 'beta.save.v1.2', 'beta.save.v1.3'];
   // 現在プレイ中のスロット。これと同じスロットは再読み込みできない。
@@ -28,6 +29,14 @@
   }
   function persistWorldProgress() {
     try { localStorage.setItem(WORLD_PROGRESS_KEY,JSON.stringify({version:1,clearedCourses:world.clearedCourses})); } catch { /* コース進行はこの起動中も維持する。 */ }
+  }
+  function restoreCourseMedals() {
+    try { const data=readStored(COURSE_MEDALS_KEY); if(!isRecord(data) || data.version!==1 || !isRecord(data.courses)) return {}; const courses={}; Object.entries(data.courses).forEach(([course,record])=>{ if(/^(?:[1-9]|1[0-3])$/.test(course) && isRecord(record) && inRange(record.bestTime,0,1e9) && Array.isArray(record.medals) && record.medals.every(m=>['SPEED','RESTORE','MERCY'].includes(m))) courses[course]={bestTime:record.bestTime,medals:[...new Set(record.medals)]}; }); return courses; } catch { return {}; }
+  }
+  function persistCourseMedal(course,time,medals) {
+    if(!FEATURES.courseMedalArchive) return;
+    const previous=world.courseMedals[course]; const bestTime=previous ? Math.min(previous.bestTime,time) : time; const earned=[...new Set([...(previous?.medals||[]),...medals])]; world.courseMedals[course]={bestTime,medals:earned};
+    try { localStorage.setItem(COURSE_MEDALS_KEY,JSON.stringify({version:1,courses:world.courseMedals})); } catch { /* 記録できなくても今回のマップ表示は保つ。 */ }
   }
   function isFirstAccess() {
     try { if (localStorage.getItem(AUTOSAVE_NOTICE_KEY)) return false; localStorage.setItem(AUTOSAVE_NOTICE_KEY,'shown'); return true; }
@@ -82,7 +91,7 @@
   images.restoredResident.src = 'assets/narrative/restored-resident.png';
   images.memoryFragment.src = 'assets/narrative/memory-fragment.png';
 
-  const world = { camera: 0, backgroundOffset: 0, started: !FEATURES.titleScreen, completed: 0, complete: 0, messageShown: false, particles: [], afterimages:[], repairWaves:[], attackFlash:0, gateExit:0, gateExitParticles:[], hitStop:0, temporaryPlatforms:[], footsteps:[], history:[], thrownOrbs:[], orbFlights:[], repairBuilds:[], bellWaves:[], guideEchoes:[], orbChain:0, orbChainTimer:0, gravityDirection:1, timeShifted:false, todoTimer:0, lastGround:null, narrative:null, stageDesign:null, colorRecovery:0, fragmentTaken:false, residentSpoken:false, signShown:false, idleLoreShown:false, idleTime:0, mapOpen:false, boundaryMode:false, boundarySeen:false, boundaryPlatforms:[], repairCombo:0, repairComboTimer:0, recoveryGlow:0, groundPound:0, menuOpen: false, controlGuide:false, developerOpen: false, courseSelect: false, clearedCourses: 0, currentCourse: 1, floating: false, stageClear: false, gateHintShown: false, guideSeen: false, repaired: 0, time: 0, checkpointIndex: 0, dialogueOpen: false, toastTimer: null, toastCountdownTimer: null, toastEndsAt: 0, autoSaveTimer: null, combo: 0, comboTimer: 0, stageBanner: 0, stageTipShown: false, stats:{orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0} };
+  const world = { camera: 0, backgroundOffset: 0, started: !FEATURES.titleScreen, completed: 0, complete: 0, messageShown: false, particles: [], afterimages:[], repairWaves:[], attackFlash:0, gateExit:0, gateExitParticles:[], hitStop:0, temporaryPlatforms:[], footsteps:[], history:[], thrownOrbs:[], orbFlights:[], repairBuilds:[], bellWaves:[], guideEchoes:[], orbChain:0, orbChainTimer:0, gravityDirection:1, timeShifted:false, todoTimer:0, lastGround:null, narrative:null, stageDesign:null, colorRecovery:0, fragmentTaken:false, residentSpoken:false, signShown:false, idleLoreShown:false, idleTime:0, mapOpen:false, boundaryMode:false, boundarySeen:false, boundaryPlatforms:[], repairCombo:0, repairComboTimer:0, recoveryGlow:0, groundPound:0, menuOpen: false, controlGuide:false, developerOpen: false, courseSelect: false, clearedCourses: 0, courseMedals:{}, currentCourse: 1, floating: false, stageClear: false, gateHintShown: false, guideSeen: false, repaired: 0, time: 0, checkpointIndex: 0, dialogueOpen: false, toastTimer: null, toastCountdownTimer: null, toastEndsAt: 0, autoSaveTimer: null, combo: 0, comboTimer: 0, stageBanner: 0, stageTipShown: false, stats:{orbs:0,repairs:0,enemies:0,checkpoints:0,jumps:0,dashes:0,attacks:0} };
   const player = { x: 110, y: 450, w: 46, h: 74, vx: 0, vy: 0, grounded: false, facing: 1, walkClock: 0, groundDash: 0, dashCooldown: 0, invulnerable: 0, attack: 0, attackCooldown: 0, airDashAvailable: false, airDash: 0, coyote:0, jumpBuffer:0, orbCharges:0, safetyNetAvailable:true, lastFootstepCell:null, copiedWispCharges:0, copiedWispTimer:0, charging:0, chargeReady:false, scaffoldCharges:0, checkpointGuard:0 };
   // 速度を維持しながら渡る、長い浮島スプリント航路。着地点と次の目印を常に画面内に置く。
   const platforms = [
@@ -343,6 +352,9 @@
         return;
       }
       const cleared=course<=world.clearedCourses; const available=course===world.clearedCourses+1;
+      const record=FEATURES.courseMedalArchive ? world.courseMedals[course] : null;
+      let medalMark=node.querySelector('.course-medal-mark'); if(!medalMark){medalMark=document.createElement('i'); medalMark.className='course-medal-mark'; node.append(medalMark);}
+      medalMark.hidden=!record; if(record){medalMark.textContent=`◆${record.medals.length}/3`; medalMark.title=`達成メダル ${record.medals.length}/3　最速 ${record.bestTime.toFixed(2)}秒`;}
       node.style.setProperty('--island-image',`url("assets/stages/Chapter1/stage-${String(course).padStart(2,'0')}-island.png")`);
       node.classList.toggle('cleared',cleared); node.classList.toggle('available',available); node.classList.toggle('locked',!cleared&&!available); node.disabled=!cleared&&!available;
     });
@@ -616,7 +628,7 @@
   function beginGateExit() { if (world.gateExit > 0 || world.stageClear) return; world.gateExit=.92; player.vx=0; player.vy=0; player.attack=0; player.groundDash=0; const targetX=goalGate.x+goalGate.w/2, targetY=goalGate.y-46; world.gateExitParticles=[]; for(let y=10;y<112;y+=9) for(let x=-38;x<=38;x+=10) { const delay=((112-y)/112)*.34+Math.random()*.045; world.gateExitParticles.push({x:player.x+player.w/2+x,y:player.y+y,targetX,targetY,delay,duration:.40+Math.random()*.10,size:3+Math.random()*4,color:Math.random()>.42?'#fff3a2':'#60e8ff',spin:(Math.random()-.5)*42}); } closeDialogue(); }
   function finishStage() { if (world.stageClear) return; world.stageClear=true; player.vx=0; player.vy=0; $('#clearStage').textContent=`ACT I ・ STAGE ${world.currentCourse} / 13`; $('#clearTime').textContent=$('#runTimer').textContent; $('#clearShards').textContent=`${world.stats.orbs} / ${shards.length}`; $('#clearRepairs').textContent=`${world.stats.repairs} / ${repairPoints.length}`; $('#clearEnemies').textContent=world.stats.enemies; $('#clearCheckpoints').textContent=world.stats.checkpoints; $('#clearJumps').textContent=world.stats.jumps; $('#clearDashes').textContent=world.stats.dashes; $('#clearAttacks').textContent=world.stats.attacks;
     const medalBox=$('#clearMedals'); medalBox.hidden=!FEATURES.resultMedals; medalBox.replaceChildren();
-    if(FEATURES.resultMedals){const difficulty=world.stageDesign?.difficulty || 1,target=mechanic('resultSpeedBaseSeconds')+difficulty*mechanic('resultSpeedPerDifficultySeconds');const medals=[['SPEED',world.time<=target,`${target.toFixed(0)}s以内`],['RESTORE',world.stats.repairs===repairPoints.length,`${repairPoints.length} 修復`],['MERCY',world.stats.enemies===0,'敵を倒さず']];for(const [name,earned,detail] of medals){const medal=document.createElement('span');medal.className=earned?'earned':'';medal.textContent=`${earned?'◆':'◇'} ${name} ${detail}`;medalBox.append(medal);}}
+    if(FEATURES.resultMedals){const difficulty=world.stageDesign?.difficulty || 1,target=mechanic('resultSpeedBaseSeconds')+difficulty*mechanic('resultSpeedPerDifficultySeconds');const medals=[['SPEED',world.time<=target,`${target.toFixed(0)}s以内`],['RESTORE',world.stats.repairs===repairPoints.length,`${repairPoints.length} 修復`],['MERCY',world.stats.enemies===0,'敵を倒さず']];const earnedNames=medals.filter(([,earned])=>earned).map(([name])=>name);persistCourseMedal(world.currentCourse,world.time,earnedNames);for(const [name,earned,detail] of medals){const medal=document.createElement('span');medal.className=earned?'earned':'';medal.textContent=`${earned?'◆':'◇'} ${name} ${detail}`;medalBox.append(medal);}}
     const remembered=world.fragmentTaken || memoryCount()>=world.currentCourse; $('#clearMessage').textContent=FEATURES.alternateEnding && remembered ? `${courseNames[world.currentCourse-1]}を完成させ、失われた記憶もつなぎ直した。` : `${courseNames[world.currentCourse-1]}を完成させた。次の浮島が、雲の向こうで待っている。`; closeDialogue(); $('#stageClear').hidden=false; $('#resultCourseSelect').focus(); }
   let last = performance.now();
   function step(now) {
@@ -956,6 +968,7 @@
   }
   function prepareCourseMap() {
     world.clearedCourses=restoreWorldProgress();
+    world.courseMedals=restoreCourseMedals();
     const candidates=[];
     if (FEATURES.saveData) SLOT_KEYS.forEach((key,index) => {
       try { const data=readStored(key); if (validSave(data)) candidates.push({ data, index }); }
