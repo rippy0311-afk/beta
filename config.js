@@ -160,6 +160,8 @@ const FEATURES = Object.freeze({
   airDashLandingOrbPull: true,
   // アイデア実装バッチ 018：未修復の基礎もHUDで見失わない。
   repairCompass: true,
+  // アイデア実装バッチ 019：修復は地上ダッシュの冷却も戻す。
+  repairDashReset: true,
 });
 
 const GAME_CONFIG = Object.freeze({

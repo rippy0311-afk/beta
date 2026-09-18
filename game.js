@@ -660,6 +660,8 @@
       showToast(world.repaired===0?'ピース「あれ？なんで壊れてるんだろう？」':'ピース「あれ？ここも壊れてる。」');
     }
     if (input('repair')) { repair(); keys.delete(bindings.repair); }
+    if(FEATURES.repairDashReset && world.repaired>(world.lastRepairDashCount||0)){player.dashCooldown=0;showToast('ピース「修復の勢いでDashが戻った！」');}
+    world.lastRepairDashCount=world.repaired;
     const copiedGlide=(player.copiedWispTimer>0 || (FEATURES.windCatch && keys.has('KeyW') && player.vy>80) || (FEATURES.glideFlight && abilities.glide && keys.has('KeyW') && !player.grounded)) ? .48 : 1;
     const gravity=world.gravityDirection*tuning.gravity*mechanic('gravityMultiplier')*copiedGlide;
     if(FEATURES.repairUpdraft && !player.grounded && keys.has('KeyW')) for(const point of repairPoints)if(point.repaired&&Math.abs(player.x+player.w/2-point.x)<mechanic('repairUpdraftRadius')&&player.y>point.y-210&&player.y<point.y+80){player.vy=Math.max(-420,player.vy-mechanic('repairUpdraftAcceleration')*dt);if(FEATURES.particles&&Math.random()<.35)world.particles.push({x:point.x+(Math.random()-.5)*55,y:point.y-10,vx:(Math.random()-.5)*28,vy:-80-Math.random()*90,life:.45,color:'#fff1a5'});}
