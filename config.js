@@ -174,6 +174,8 @@ const FEATURES = Object.freeze({
   edgeDashVault: true,
   // アイデア実装バッチ 024：風の航路に上昇力を持たせ、縦方向の選択を作る。
   stageWindLaneUpdrafts: true,
+  // アイデア実装バッチ 025：結果を次の挑戦の目標にするコースメダル。
+  resultMedals: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -265,6 +267,8 @@ const MECHANIC_NUMBERS = Object.freeze({
   edgeDashVaultVelocity: 430,
   stageWindLaneLiftMultiplier: 1,
   stageWindLaneMaxRiseVelocity: 390,
+  resultSpeedBaseSeconds: 58,
+  resultSpeedPerDifficultySeconds: 8,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({

@@ -28,5 +28,6 @@ The source list contains 2,000 broad concepts. This file records only ideas that
 | 022 | New: enemy bounce | Falling squarely onto an enemy turns it into a short stunned springboard and restores Air Dash for an aerial recovery route. | `enemyBounce` | Implemented |
 | 023 | New: edge Dash vault | A ground Dash that runs naturally beyond a platform edge becomes a low, fast recovery vault without pressing jump. | `edgeDashVault` | Implemented |
 | 024 | New: data-defined wind updraft | A Stage Builder wind lane can define vertical lift, turning Stage 5's vertical shaft into a sustained aerial routing space. | `stageWindLaneUpdrafts` | Implemented |
+| 025 | New: result medals | A clear result awards visible Speed, Restore, and Mercy medals to turn replay into concrete self-set goals. | `resultMedals` | Implemented |
 
-Progress: 44 / 1,000 target ideas implemented or concretely tracked.
+Progress: 45 / 1,000 target ideas implemented or concretely tracked.
