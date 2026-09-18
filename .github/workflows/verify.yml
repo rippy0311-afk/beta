@@ -16,6 +16,8 @@ jobs:
           node-version: 22
       - name: Check game syntax
         run: node --check game.js
+      - name: Validate Stage Builder data
+        run: node tools/validate-stage-layouts.js
       - name: Audit feature switches
         run: node tools/audit-feature-flags.js
       - name: Verify progress-generated catalog is current
