@@ -662,6 +662,7 @@
     if (input('repair')) { repair(); keys.delete(bindings.repair); }
     const copiedGlide=(player.copiedWispTimer>0 || (FEATURES.windCatch && keys.has('KeyW') && player.vy>80) || (FEATURES.glideFlight && abilities.glide && keys.has('KeyW') && !player.grounded)) ? .48 : 1;
     const gravity=world.gravityDirection*tuning.gravity*mechanic('gravityMultiplier')*copiedGlide;
+    if(FEATURES.repairUpdraft && !player.grounded && keys.has('KeyW')) for(const point of repairPoints)if(point.repaired&&Math.abs(player.x+player.w/2-point.x)<mechanic('repairUpdraftRadius')&&player.y>point.y-210&&player.y<point.y+80){player.vy=Math.max(-420,player.vy-mechanic('repairUpdraftAcceleration')*dt);if(FEATURES.particles&&Math.random()<.35)world.particles.push({x:point.x+(Math.random()-.5)*55,y:point.y-10,vx:(Math.random()-.5)*28,vy:-80-Math.random()*90,life:.45,color:'#fff1a5'});}
     if (!world.floating) player.vy += gravity * dt; player.x += player.vx*(FEATURES.heightLayer && player.y<mechanic('heightLayerY')?mechanic('heightLayerSpeedMultiplier'):1)*dt; player.y += player.vy*dt; player.grounded=false;
     for (const p of surfaces()) { if(!p.active) continue;
       const px=platformX(p), py=platformY(p), surfaceY=py-20;

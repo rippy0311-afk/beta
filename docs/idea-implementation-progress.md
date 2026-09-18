@@ -18,5 +18,6 @@ The source list contains 2,000 broad concepts. This file records only ideas that
 | 012 | New: ground-pound bounce | An F-key ground pound rebounds from a platform, turning a downward commitment into a high recovery jump. | `groundPoundBounce` | Implemented |
 | 013 | New: air-strike dash refill, purification jump refill | An aerial strike restores Air Dash; a mid-air purification restores the double jump when unlocked. | `airStrikeDashRefill`, `purificationJumpRefill` | Implemented |
 | 014 | New: checkpoint momentum boost | Crossing a checkpoint while already moving fast gives a brief speed carry, rewarding a clean continuous route. | `checkpointMomentumBoost` | Implemented |
+| 015 | New: repair updraft | Holding W in the air around a repaired foundation catches a short updraft, turning restoration sites into vertical route anchors. | `repairUpdraft` | Implemented |
 
-Progress: 32 / 1,000 target ideas implemented or concretely tracked.
+Progress: 33 / 1,000 target ideas implemented or concretely tracked.

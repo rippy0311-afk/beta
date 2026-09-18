@@ -151,6 +151,8 @@ const FEATURES = Object.freeze({
   purificationJumpRefill: true,
   // アイデア実装バッチ 014：走り抜けたチェックポイントが短い加速をくれる。
   checkpointMomentumBoost: true,
+  // アイデア実装バッチ 015：修復済みの建造物が上向きの風路になる。
+  repairUpdraft: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -226,6 +228,8 @@ const MECHANIC_NUMBERS = Object.freeze({
   checkpointMomentumThreshold: 250,
   checkpointMomentumDuration: 1.15,
   checkpointMomentumMultiplier: 1.15,
+  repairUpdraftRadius: 105,
+  repairUpdraftAcceleration: 1050,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({
