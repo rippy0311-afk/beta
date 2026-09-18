@@ -172,6 +172,8 @@ const FEATURES = Object.freeze({
   enemyBounce: true,
   // アイデア実装バッチ 023：地上Dashのまま端を抜ける、速度重視の低い跳躍。
   edgeDashVault: true,
+  // アイデア実装バッチ 024：風の航路に上昇力を持たせ、縦方向の選択を作る。
+  stageWindLaneUpdrafts: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -261,6 +263,8 @@ const MECHANIC_NUMBERS = Object.freeze({
   enemyBounceVelocity: 735,
   enemyBounceStun: 1.1,
   edgeDashVaultVelocity: 430,
+  stageWindLaneLiftMultiplier: 1,
+  stageWindLaneMaxRiseVelocity: 390,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({

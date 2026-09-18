@@ -31,7 +31,7 @@ window.BETA_STAGE_LAYOUTS = (() => {
   // force は毎秒の横加速度。正なら右、負なら左へ運ぶ。
   window.BETA_STAGE_MODIFIERS = Object.freeze({
     2: { windLanes:[{x:690,w:560,top:210,bottom:555,force:145,label:'雲裂きの追い風'}] },
-    5: { windLanes:[{x:1780,w:600,top:120,bottom:480,force:230,label:'縦坑の上昇風'}] },
+    5: { windLanes:[{x:1780,w:600,top:120,bottom:480,force:230,lift:520,label:'縦坑の上昇風'}] },
     7: { windLanes:[{x:780,w:480,top:210,bottom:500,force:115,label:'夜渡りの横風'},{x:2040,w:420,top:160,bottom:470,force:150,label:'連橋の追い風'}] },
     10:{ windLanes:[{x:1080,w:660,top:190,bottom:535,force:260,label:'熔岩雲の熱風'}] },
     13:{ windLanes:[{x:1880,w:490,top:115,bottom:420,force:205,label:'最終工区の光風'}] },

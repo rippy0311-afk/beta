@@ -39,7 +39,7 @@ for (const stage of expectedStages) {
     if (!Array.isArray(enemy) || !enemy.slice(0, 6).every(finite) || enemy[2] > enemy[3] || !positive(enemy[4])) issues.push(`Stage ${stage}: enemy ${index + 1} is invalid`);
   }
   for (const [index, lane] of (modifiers[stage]?.windLanes || []).entries()) {
-    if (!lane || ![lane.x, lane.w, lane.top, lane.bottom, lane.force].every(finite) || !positive(lane.w) || lane.top >= lane.bottom || lane.force === 0) issues.push(`Stage ${stage}: wind lane ${index + 1} is invalid`);
+    if (!lane || ![lane.x, lane.w, lane.top, lane.bottom, lane.force].every(finite) || !positive(lane.w) || lane.top >= lane.bottom || lane.force === 0 || (lane.lift !== undefined && (!finite(lane.lift) || lane.lift < 0))) issues.push(`Stage ${stage}: wind lane ${index + 1} is invalid`);
   }
 }
 
