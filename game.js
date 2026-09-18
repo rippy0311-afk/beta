@@ -73,9 +73,9 @@
   let mechanicNumbers = { ...MECHANIC_NUMBERS, ...(STAGE_NUMERIC_OVERRIDES[1] || {}) };
   const mechanic = (key) => mechanicNumbers[key] ?? MECHANIC_NUMBERS[key];
   // 実装を追加するときは abilities に機能名を足すだけで、開発・セーブ画面から扱える土台になる。
-  const abilities = FEATURES.abilitySystem ? { airDash:false, doubleJump:false, glide:false } : {};
+  const abilities = window.BETA_ABILITIES.create();
   const AIR_DASH_MAX_LEVEL = 5;
-  const abilityLevels = { airDash: 1 };
+  const abilityLevels = window.BETA_ABILITIES.createLevels();
   const images = { background: new Image(), terrain: new Image(), repairBefore:new Image(), repairAfter:new Image(), orb: new Image(), sprites: new Image(), walk: new Image(), groundDash: new Image(), enemy: new Image(), attack: new Image(), pieceSlime: new Image(), futureWindow:new Image(), restoredResident:new Image(), memoryFragment:new Image() };
   images.background.src = 'assets/Background/Chapter1/stage-01-background.png';
   images.terrain.src = 'assets/stages/Chapter1/stage-01-platform.png';
@@ -129,7 +129,7 @@
     { course:11, name:'Luna', color:'#ff6575', ability:'月影の力を調律する' },
   ];
   function loadCourse(number) {
-    world.currentCourse=number; abilities.airDash=number>=5; abilities.doubleJump=FEATURES.doubleJump && number>=8; abilities.glide=FEATURES.glideFlight && number>=11;
+    world.currentCourse=number; window.BETA_ABILITIES.unlockForStage(abilities,number);
     world.boundaryMode=false; world.boundaryPlatforms=[]; world.boundarySeen=false; world.mapOpen=false;
     player.copiedWispCharges=0; player.copiedWispTimer=0;
     mechanicNumbers={ ...MECHANIC_NUMBERS, ...(STAGE_NUMERIC_OVERRIDES[number] || {}) };
@@ -628,9 +628,11 @@
   }
   function updateHud() { const percent = Math.min(100, Math.round((world.completed * 12 + world.repaired * 26 + enemies.filter(e=>!e.alive).length * 4))); $('#completionValue').textContent = `${percent}%`; $('#completionBar').style.width = `${percent}%`; $('#shardCount').textContent = '◇'.repeat(Math.min(5,world.completed)) + '◆'.repeat(Math.max(0,5-world.completed)); $('#segmentLabel').textContent=`STAGE ${world.currentCourse} / 13　${courseNames[world.currentCourse-1]}`; }
   function beginGateExit() { if (world.gateExit > 0 || world.stageClear) return; world.gateExit=.92; player.vx=0; player.vy=0; player.attack=0; player.groundDash=0; const targetX=goalGate.x+goalGate.w/2, targetY=goalGate.y-46; world.gateExitParticles=[]; for(let y=10;y<112;y+=9) for(let x=-38;x<=38;x+=10) { const delay=((112-y)/112)*.34+Math.random()*.045; world.gateExitParticles.push({x:player.x+player.w/2+x,y:player.y+y,targetX,targetY,delay,duration:.40+Math.random()*.10,size:3+Math.random()*4,color:Math.random()>.42?'#fff3a2':'#60e8ff',spin:(Math.random()-.5)*42}); } closeDialogue(); }
+  function resultMedalState() { const difficulty=world.stageDesign?.difficulty || 1,target=mechanic('resultSpeedBaseSeconds')+difficulty*mechanic('resultSpeedPerDifficultySeconds'); return [['SPEED',world.time<=target,`${target.toFixed(0)}s以内`],['RESTORE',world.stats.repairs===repairPoints.length,`${repairPoints.length} 修復`],['MERCY',world.stats.enemies===0,'敵を倒さず']]; }
   function finishStage() { if (world.stageClear) return; world.stageClear=true; player.vx=0; player.vy=0; $('#clearStage').textContent=`ACT I ・ STAGE ${world.currentCourse} / 13`; $('#clearTime').textContent=$('#runTimer').textContent; $('#clearShards').textContent=`${world.stats.orbs} / ${shards.length}`; $('#clearRepairs').textContent=`${world.stats.repairs} / ${repairPoints.length}`; $('#clearEnemies').textContent=world.stats.enemies; $('#clearCheckpoints').textContent=world.stats.checkpoints; $('#clearJumps').textContent=world.stats.jumps; $('#clearDashes').textContent=world.stats.dashes; $('#clearAttacks').textContent=world.stats.attacks;
     const medalBox=$('#clearMedals'); medalBox.hidden=!FEATURES.resultMedals; medalBox.replaceChildren();
-    if(FEATURES.resultMedals){const difficulty=world.stageDesign?.difficulty || 1,target=mechanic('resultSpeedBaseSeconds')+difficulty*mechanic('resultSpeedPerDifficultySeconds');const medals=[['SPEED',world.time<=target,`${target.toFixed(0)}s以内`],['RESTORE',world.stats.repairs===repairPoints.length,`${repairPoints.length} 修復`],['MERCY',world.stats.enemies===0,'敵を倒さず']];const earnedNames=medals.filter(([,earned])=>earned).map(([name])=>name);persistCourseMedal(world.currentCourse,world.time,earnedNames);for(const [name,earned,detail] of medals){const medal=document.createElement('span');medal.className=earned?'earned':'';medal.textContent=`${earned?'◆':'◇'} ${name} ${detail}`;medalBox.append(medal);}}
+    const medals=resultMedalState(); const earnedNames=medals.filter(([,earned])=>earned).map(([name])=>name);
+    if(FEATURES.resultMedals){persistCourseMedal(world.currentCourse,world.time,earnedNames);for(const [name,earned,detail] of medals){const medal=document.createElement('span');medal.className=earned?'earned':'';medal.textContent=`${earned?'◆':'◇'} ${name} ${detail}`;medalBox.append(medal);}}
     const remembered=world.fragmentTaken || memoryCount()>=world.currentCourse; $('#clearMessage').textContent=FEATURES.alternateEnding && remembered ? `${courseNames[world.currentCourse-1]}を完成させ、失われた記憶もつなぎ直した。` : `${courseNames[world.currentCourse-1]}を完成させた。次の浮島が、雲の向こうで待っている。`; closeDialogue(); $('#stageClear').hidden=false; $('#resultCourseSelect').focus(); }
   let last = performance.now();
   function step(now) {

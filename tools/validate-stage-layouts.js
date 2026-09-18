@@ -4,7 +4,7 @@
 const path = require('path');
 
 global.window = {};
-require(path.join(__dirname, '..', 'stage-layouts.js'));
+require(path.join(__dirname, '..', 'systems', 'stage-builder.js'));
 
 const layouts = window.BETA_STAGE_LAYOUTS;
 const modifiers = window.BETA_STAGE_MODIFIERS || {};

@@ -28,9 +28,6 @@
             <div><kbd id="guideAttack">Z</kbd><span>攻撃</span></div>
             <div><kbd id="guideRepair">E</kbd><span>修復</span></div>
             <div id="guideAirDashRow"><kbd>X</kbd><span>Air Dash <small id="guideAirDashStatus">空中・各着地1回</small></span></div>
-            <div><kbd>Q</kbd><kbd>R</kbd><kbd>T</kbd><kbd>C</kbd><span>巻戻し・重力・時間・オーブ</span></div>
-            <div><kbd>K</kbd><span>TODO を3秒消す</span></div>
-            <div><kbd>M</kbd><kbd>V</kbd><span>手描き地図・コピー能力</span></div>
             <div><kbd id="guideMenu">Esc</kbd><span>メニュー</span></div>
           </div>
           <p>画面のボタンは <kbd>↑↓←→</kbd> ＋ Enter で選択<br /><kbd>H</kbd> または <kbd>Esc</kbd> で閉じる</p>
@@ -157,12 +154,15 @@
       </section>
       <aside class="feature-panel">
         <p>開発者メモ</p>
-        <h2>機能スイッチ式の土台</h2>
-        <code>config.js</code> の <code>true / false</code> を変えるだけで、各機能をオン・オフできます。
+        <h2>完成を優先する土台</h2>
+        <code>systems/gameplay-options.js</code> で、まとまりごとの機能を安全に切り替えられます。
       </aside>
     </main>
-    <script src="config.js?v=13"></script>
-    <script src="stage-layouts.js?v=1"></script>
-    <script src="game.js?v=45"></script>
+    <script src="systems/gameplay-options.js?v=1"></script>
+    <script src="systems/world-rules.js?v=1"></script>
+    <script src="systems/abilities.js?v=1"></script>
+    <script src="systems/stage-builder.js?v=1"></script>
+    <script src="systems/narrative.js?v=1"></script>
+    <script src="game.js?v=46"></script>
   </body>
 </html>

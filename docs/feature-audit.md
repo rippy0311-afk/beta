@@ -7,6 +7,6 @@ node tools/audit-feature-flags.js
 node --check game.js
 ```
 
-The audit reads every `FEATURES` key from `config.js` and verifies that the game checks it. Placeholder systems are explicitly exempted inside the audit script; new placeholders must be added there deliberately rather than silently ignored.
+The audit reads every `FEATURES` key from `systems/gameplay-options.js` and verifies that the game checks it. New options must be deliberate gameplay groupings rather than placeholders.
 
 This keeps the 1,000-idea catalog safe to expand: a proposed toggle is not considered integrated until it has a game-side check and an ON/OFF browser smoke test.

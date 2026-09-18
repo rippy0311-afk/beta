@@ -33,3 +33,7 @@ The source list contains 2,000 broad concepts. This file records only ideas that
 | 027 | New: course medal briefing | Focusing a course island briefly explains its best time and remaining medal challenges, so replay goals stay visible while selecting a route. | `courseMedalBriefing` | Implemented |
 
 Progress: 47 / 1,000 target ideas implemented or concretely tracked.
+
+## Core audit
+
+2026-09-17のプレイ動画を基に、Batch 001〜024のうち移動能力を増やす実験系は標準実行から引退しました。実装履歴は重複防止のため残し、現在の採用機能と今後の統合判断は [core-experience-audit.md](core-experience-audit.md) を正とします。
