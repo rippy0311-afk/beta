@@ -3,6 +3,13 @@
  */
 const fs = require('fs');
 const path = require('path');
+const totalIdeas = 1000;
+const progressPath = path.join(__dirname, '..', 'docs', 'idea-implementation-progress.md');
+const progressText = fs.readFileSync(progressPath, 'utf8');
+const progressMatch = progressText.match(/^Progress:\s*(\d+)\s*\/\s*1,000\s+target ideas/m);
+if (!progressMatch) throw new Error('Could not read the implemented-idea total from docs/idea-implementation-progress.md');
+const implementedIdeas = Number(progressMatch[1]);
+if (!Number.isInteger(implementedIdeas) || implementedIdeas < 0 || implementedIdeas > totalIdeas) throw new Error(`Invalid implemented-idea total: ${implementedIdeas}`);
 
 const worlds = ['雲の骨組み', '逆さの滝', '月光の湖', '眠る機械島', 'ガラスの峡谷', '風化した尖塔', '星屑の工房', '白紙の庭園', '沈む雲海', 'アルケアの外縁'];
 const triggers = ['初めて島へ降りた時', '連続でオーブを集めた時', '基礎を修復した時', 'チェックポイントを灯した時', '地上ダッシュを決めた時', '空中でAir Dashした時', '敵を倒さず通り抜けた時', '記憶の断片へ近づいた時', 'ゴールの門を見つけた時', '深い落下から戻った時'];
@@ -25,9 +32,9 @@ const lines = [
   '',
   'このカタログは、重複を避けるために「世界 × 発火条件 × 変化」をID化した設計母集団です。各項目には実装経路を記し、実装済みと候補を分けます。',
   '',
-  '- 設計済み: 1,000件',
-  '- 実装済み・進捗反映: 42件（詳細は `docs/idea-implementation-progress.md`。このカタログは後からIDを付けた設計母集団のため、既存実装をID順に対応付けていません）',
-  '- 候補・素材待ち: 958件',
+  `- 設計済み: ${totalIdeas.toLocaleString('en-US')}件`,
+  `- 実装済み・進捗反映: ${implementedIdeas}件（詳細は \`docs/idea-implementation-progress.md\`。このカタログは後からIDを付けた設計母集団のため、既存実装をID順に対応付けていません）`,
+  `- 候補・素材待ち: ${totalIdeas-implementedIdeas}件`,
   '',
   '| ID | アイデア | 実装経路 | 状態 |',
   '|---:|---|---|---|',
