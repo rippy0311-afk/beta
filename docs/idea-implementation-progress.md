@@ -23,5 +23,6 @@ The source list contains 2,000 broad concepts. This file records only ideas that
 | 017 | New: Air Dash landing shockwave, Air Dash landing orb pull | Landing shortly after an Air Dash stuns nearby enemies and can pull nearby orbs toward the landing point. | `airDashLandingShockwave`, `airDashLandingOrbPull` | Implemented |
 | 018 | New: repair compass | HUD points toward the next unrepaired foundation as well as the existing orb route. | `repairCompass` | Implemented |
 | 019 | New: repair dash reset | Completing a repair immediately clears the ground-dash cooldown, helping Ren flow into the freshly repaired route. | `repairDashReset` | Implemented |
+| 020 | New: checkpoint scaffold charge, checkpoint guard seal | Each new checkpoint provides one free C-key scaffold when Ren has no carried orb, plus one protective seal that blocks the next enemy hit. | `checkpointScaffoldCharge`, `checkpointGuardSeal` | Implemented |
 
-Progress: 38 / 1,000 target ideas implemented or concretely tracked.
+Progress: 40 / 1,000 target ideas implemented or concretely tracked.

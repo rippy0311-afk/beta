@@ -162,6 +162,9 @@ const FEATURES = Object.freeze({
   repairCompass: true,
   // アイデア実装バッチ 019：修復は地上ダッシュの冷却も戻す。
   repairDashReset: true,
+  // アイデア実装バッチ 020：チェックポイントを再開地点だけでなく、航路を立て直す拠点にする。
+  checkpointScaffoldCharge: true,
+  checkpointGuardSeal: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -244,6 +247,9 @@ const MECHANIC_NUMBERS = Object.freeze({
   airDashLandingRadius: 145,
   airDashLandingOrbRadius: 220,
   airDashLandingStun: 0.85,
+  checkpointScaffoldCharges: 1,
+  checkpointGuardDuration: 1.25,
+  checkpointGuardGrace: 2,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({
