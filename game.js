@@ -126,6 +126,7 @@
     mechanicNumbers={ ...MECHANIC_NUMBERS, ...(STAGE_NUMERIC_OVERRIDES[number] || {}) };
     world.narrative=NARRATIVE_STAGE_CONTENT[number] || null;
     world.stageDesign=(window.BETA_STAGE_DESIGN || {})[number] || null;
+    world.stageModifiers=(window.BETA_STAGE_MODIFIERS || {})[number] || {};
     world.colorRecovery=0;
     world.checkpointFailures={};
     world.airOrbChain=0;
@@ -682,6 +683,10 @@
     if(FEATURES.repairDashReset && world.repaired>(world.lastRepairDashCount||0)){player.dashCooldown=0;showToast('ピース「修復の勢いでDashが戻った！」');}
     world.lastRepairDashCount=world.repaired;
     const copiedGlide=(player.copiedWispTimer>0 || (FEATURES.windCatch && keys.has('KeyW') && player.vy>80) || (FEATURES.glideFlight && abilities.glide && keys.has('KeyW') && !player.grounded)) ? .48 : 1;
+    if(FEATURES.stageWindLanes && !player.grounded) for(const lane of world.stageModifiers?.windLanes || []) {
+      const centerX=player.x+player.w/2, centerY=player.y+player.h/2;
+      if(centerX>=lane.x && centerX<=lane.x+lane.w && centerY>=lane.top && centerY<=lane.bottom) player.vx+=lane.force*mechanic('stageWindLaneMultiplier')*dt;
+    }
     const gravity=world.gravityDirection*tuning.gravity*mechanic('gravityMultiplier')*copiedGlide;
     if(FEATURES.repairUpdraft && !player.grounded && keys.has('KeyW')) for(const point of repairPoints)if(point.repaired&&Math.abs(player.x+player.w/2-point.x)<mechanic('repairUpdraftRadius')&&player.y>point.y-210&&player.y<point.y+80){player.vy=Math.max(-420,player.vy-mechanic('repairUpdraftAcceleration')*dt);if(FEATURES.particles&&Math.random()<.35)world.particles.push({x:point.x+(Math.random()-.5)*55,y:point.y-10,vx:(Math.random()-.5)*28,vy:-80-Math.random()*90,life:.45,color:'#fff1a5'});}
     if (!world.floating) player.vy += gravity * dt; player.x += player.vx*(FEATURES.heightLayer && player.y<mechanic('heightLayerY')?mechanic('heightLayerSpeedMultiplier'):1)*dt; player.y += player.vy*dt; player.grounded=false;
@@ -826,6 +831,11 @@
     if(FEATURES.completionCloudBloom && world.colorRecovery>0){ctx.save();ctx.globalAlpha=world.colorRecovery*.24;ctx.fillStyle='#e7fbff';for(let i=0;i<5;i++){const x=110+i*285,y=548+(i%2)*38;ctx.beginPath();ctx.ellipse(x,y,62,14,0,0,Math.PI*2);ctx.ellipse(x+42,y-8,48,16,0,0,Math.PI*2);ctx.fill();}ctx.restore();}
     if (FEATURES.speedStreaks && Math.abs(player.vx)>tuning.playerSpeed*.72) { ctx.save();ctx.globalAlpha=.28;ctx.strokeStyle='#b8f9ff';ctx.lineWidth=2;for(let i=0;i<10;i++){const y=170+i*38+(i%2)*9;const x=player.facing>0?80+i*65:810-i*65;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-player.facing*(55+i*6),y);ctx.stroke();}ctx.restore(); }
     ctx.save(); ctx.translate(-world.camera,0);
+    if(FEATURES.stageWindLaneMarkers) for(const lane of world.stageModifiers?.windLanes || []) {
+      ctx.save();ctx.globalAlpha=.24;ctx.strokeStyle=lane.force>0?'#8cf6ff':'#d3b6ff';ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=10;ctx.lineWidth=2;
+      for(let x=lane.x+26;x<lane.x+lane.w-18;x+=92){const y=lane.top+44+((x-lane.x)%4)*44;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.sign(lane.force)*44,y);ctx.lineTo(x+Math.sign(lane.force)*34,y-7);ctx.moveTo(x+Math.sign(lane.force)*44,y);ctx.lineTo(x+Math.sign(lane.force)*34,y+7);ctx.stroke();}
+      ctx.globalAlpha=.65;ctx.fillStyle='#e4fcff';ctx.font='800 10px sans-serif';ctx.fillText(lane.label,lane.x+12,lane.top+22);ctx.restore();
+    }
     for (const p of surfaces()) if(p.active) {
       // 修復前の基礎は active=false のため、見た目だけでなく当たり判定も存在しない。
       const px=platformX(p),py=platformY(p);

@@ -24,5 +24,6 @@ The source list contains 2,000 broad concepts. This file records only ideas that
 | 018 | New: repair compass | HUD points toward the next unrepaired foundation as well as the existing orb route. | `repairCompass` | Implemented |
 | 019 | New: repair dash reset | Completing a repair immediately clears the ground-dash cooldown, helping Ren flow into the freshly repaired route. | `repairDashReset` | Implemented |
 | 020 | New: checkpoint scaffold charge, checkpoint guard seal | Each new checkpoint provides one free C-key scaffold when Ren has no carried orb, plus one protective seal that blocks the next enemy hit. | `checkpointScaffoldCharge`, `checkpointGuardSeal` | Implemented |
+| 021 | New: data-defined wind lanes | Stage Builder-ready lane data gives selected Chapter 1 courses visible, airborne tailwinds without baking the behavior into their terrain. | `stageWindLanes`, `stageWindLaneMarkers` | Implemented |
 
-Progress: 40 / 1,000 target ideas implemented or concretely tracked.
+Progress: 41 / 1,000 target ideas implemented or concretely tracked.

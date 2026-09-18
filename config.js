@@ -165,6 +165,9 @@ const FEATURES = Object.freeze({
   // アイデア実装バッチ 020：チェックポイントを再開地点だけでなく、航路を立て直す拠点にする。
   checkpointScaffoldCharge: true,
   checkpointGuardSeal: true,
+  // アイデア実装バッチ 021：ステージデータで定義する風の航路。
+  stageWindLanes: true,
+  stageWindLaneMarkers: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -250,6 +253,7 @@ const MECHANIC_NUMBERS = Object.freeze({
   checkpointScaffoldCharges: 1,
   checkpointGuardDuration: 1.25,
   checkpointGuardGrace: 2,
+  stageWindLaneMultiplier: 1,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({
