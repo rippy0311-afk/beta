@@ -13,5 +13,6 @@ The source list contains 2,000 broad concepts. This file records only ideas that
 | 007 | New: orb resonance sprint, enemy memory step | Rapidly collecting two or more orbs gives Ren a short speed resonance; defeated or purified enemies leave a brief, standable echo-step where they were. | `orbResonanceSprint`, `enemyMemoryStep` | Implemented |
 | 008 | 2 | Pressing C spends one held orb and converts its short arc into a temporary construction platform in front of Ren. | `orbBuildPlatform` | Implemented |
 | 009 | New: orb safety net | On a deep fall, one held orb is consumed to create a single emergency platform before Ren respawns. | `orbSafetyNet` | Implemented |
+| 010 | New: memory sense, repair fireflies, patrol ghost, checkpoint ribbon, cloud bloom | Carried orbs sense nearby memory fragments; repaired foundations gain fireflies; standing still reveals enemy patrol lines; HUD can point to the next checkpoint; restored colour brings small clouds into bloom. | `orbMemorySense`, `repairAmbientFireflies`, `enemyRouteGhosts`, `checkpointMapRibbon`, `completionCloudBloom` | Implemented |
 
-Progress: 21 / 1,000 target ideas implemented or concretely tracked.
+Progress: 26 / 1,000 target ideas implemented or concretely tracked.

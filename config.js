@@ -135,6 +135,12 @@ const FEATURES = Object.freeze({
   orbBuildPlatform: true,
   // アイデア実装バッチ 009：落下中、所持オーブで一度だけ緊急足場を作れる。
   orbSafetyNet: true,
+  // アイデア実装バッチ 010：未完成の世界を読み取るための探索・視認性レイヤー。
+  orbMemorySense: true,
+  repairAmbientFireflies: true,
+  enemyRouteGhosts: true,
+  checkpointMapRibbon: true,
+  completionCloudBloom: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -202,6 +208,7 @@ const MECHANIC_NUMBERS = Object.freeze({
   orbBuildPlatformLife: 3.1,
   orbSafetyNetLife: 2.7,
   orbSafetyNetHeight: 650,
+  memorySenseDistance: 760,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({
