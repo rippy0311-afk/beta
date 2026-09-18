@@ -161,22 +161,37 @@
   const courseOneEnemies=enemies.map(enemy=>({...enemy}));
   const stageLayouts=window.BETA_STAGE_LAYOUTS;
   // Each slot is independent: a damaged or newer slot must not prevent other slots loading.
+  // Save records are created in every Chapter 1 course.  Do not validate a
+  // stage-five (15 orb) record using stage one's 14-orb shape: that used to
+  // mark perfectly good auto-saves as damaged on the next launch.
+  function courseSaveShape(course) {
+    if (!Number.isInteger(course) || course < 1 || course > 13) return null;
+    if (course === 1) return {
+      orbs: courseOneState.shards.length,
+      repairs: courseOneState.repairs.length,
+      enemies: courseOneEnemies.length,
+      checkpoints: courseOneState.checkpoints.length,
+    };
+    const layout=stageLayouts[course];
+    return layout ? { orbs:layout.orbs.length, repairs:layout.repairs.length, enemies:layout.enemies.length, checkpoints:layout.checkpoints.length } : null;
+  }
   function validSave(data) {
     const flags = (value, length) => Array.isArray(value) && value.length === length && value.every(x => typeof x === 'boolean');
-    return isRecord(data) && data.version === 1 && data.stage === 1 &&
+    const course=data?.course ?? 1;
+    const shape=courseSaveShape(course);
+    return isRecord(data) && data.version === 1 && [1,2].includes(data.stage) && shape &&
       inRange(data.savedAt, 0, 8640000000000000) && isRecord(data.player) &&
       inRange(data.player.x, 0, 12000-player.w) && inRange(data.player.y, -1000, 700) &&
       [1,-1].includes(data.player.facing) && inRange(data.time, 0, 1e9) && inRange(data.complete, 0, 100) &&
-      (data.course === undefined || Number.isInteger(data.course) && inRange(data.course, 1, 13)) &&
       (data.clearedCourses === undefined || Number.isInteger(data.clearedCourses) && inRange(data.clearedCourses, 0, 13)) &&
-      Number.isInteger(data.checkpointIndex) && inRange(data.checkpointIndex, 0, 4) &&
-      flags(data.shards, 14) && Array.isArray(data.repairs) && data.repairs.every(x => typeof x === 'boolean') && flags(data.enemies, enemies.length) &&
+      Number.isInteger(data.checkpointIndex) && inRange(data.checkpointIndex, 0, shape.checkpoints-1) &&
+      flags(data.shards, shape.orbs) && flags(data.repairs, shape.repairs) && flags(data.enemies, shape.enemies) &&
       isRecord(data.abilities) && ['dash','doubleJump','glide'].every(key => data.abilities[key] === undefined || typeof data.abilities[key] === 'boolean') &&
       (data.abilityLevels === undefined || isRecord(data.abilityLevels) && Number.isInteger(data.abilityLevels.airDash) && inRange(data.abilityLevels.airDash,1,AIR_DASH_MAX_LEVEL)) &&
       (data.stats === undefined || isRecord(data.stats) && Object.values(data.stats).every(value=>Number.isInteger(value) && inRange(value,0,100000)));
   }
   function snapshot() {
-    return { version:1, stage:1, savedAt:Date.now(), player:{ x:player.x, y:player.y, facing:player.facing },
+    return { version:1, stage:2, savedAt:Date.now(), player:{ x:player.x, y:player.y, facing:player.facing },
       time:world.time, complete:world.complete, course:world.currentCourse, clearedCourses:world.clearedCourses, checkpointIndex:world.checkpointIndex,
       shards:shards.map(s=>s.taken), repairs:repairPoints.map(p=>p.repaired), enemies:enemies.map(e=>e.alive), abilities:{ ...abilities }, abilityLevels:{ ...abilityLevels }, stats:{...world.stats} };
   }
@@ -218,7 +233,8 @@
       catch { damaged=true; }
       const row=document.createElement('div'); row.className='save-slot';
       const label=document.createElement('p');
-      label.textContent=`SLOT ${index+1} — ${damaged ? '読み込めません（削除または上書き可能）' : data ? `${new Date(data.savedAt).toLocaleString()} · CP ${data.checkpointIndex+1} · ◇ ${data.shards.filter(Boolean).length}/${shards.length}` : '空きスロット'}`;
+      const savedShape=data ? courseSaveShape(data.course ?? 1) : null;
+      label.textContent=`SLOT ${index+1} — ${damaged ? '読み込めません（削除または上書き可能）' : data ? `${new Date(data.savedAt).toLocaleString()} · STAGE ${data.course ?? 1} · CP ${data.checkpointIndex+1} · ◇ ${data.shards.filter(Boolean).length}/${savedShape?.orbs ?? data.shards.length}` : '空きスロット'}`;
       row.append(label);
       for (const [action,title] of [['save','保存'],['load','読込'],['delete','削除']]) {
         const button=document.createElement('button'); button.textContent=title; button.dataset.slot=index+1; button.dataset.saveAction=action;
