@@ -19,5 +19,6 @@ The source list contains 2,000 broad concepts. This file records only ideas that
 | 013 | New: air-strike dash refill, purification jump refill | An aerial strike restores Air Dash; a mid-air purification restores the double jump when unlocked. | `airStrikeDashRefill`, `purificationJumpRefill` | Implemented |
 | 014 | New: checkpoint momentum boost | Crossing a checkpoint while already moving fast gives a brief speed carry, rewarding a clean continuous route. | `checkpointMomentumBoost` | Implemented |
 | 015 | New: repair updraft | Holding W in the air around a repaired foundation catches a short updraft, turning restoration sites into vertical route anchors. | `repairUpdraft` | Implemented |
+| 016 | New: ledge grab | A near-miss at the top corner of a platform is snapped into a landing, making precise air routes feel fairer. | `ledgeGrab` | Implemented |
 
-Progress: 33 / 1,000 target ideas implemented or concretely tracked.
+Progress: 34 / 1,000 target ideas implemented or concretely tracked.

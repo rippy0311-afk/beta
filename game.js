@@ -669,7 +669,10 @@
       const descending=player.vy*world.gravityDirection>=0;
       const isOnTop=world.gravityDirection>0 && player.y+player.h>=surfaceY && player.y+player.h-player.vy*dt<=surfaceY+12;
       const isOnBottom=world.gravityDirection<0 && player.y<=py+p.h && player.y-player.vy*dt>=py+p.h-12;
-      if(descending && player.x+player.w>px && player.x<px+p.w && (isOnTop||isOnBottom)) {
+      const overlapsPlatform=player.x+player.w>px && player.x<px+p.w;
+      const canLedgeGrab=FEATURES.ledgeGrab && world.gravityDirection>0 && player.vy>0 && isOnTop && ((player.x+player.w>=px-mechanic('ledgeGrabWidth')&&player.x+player.w<px)||(player.x<=px+p.w+mechanic('ledgeGrabWidth')&&player.x>px+p.w));
+      if(descending && (overlapsPlatform||canLedgeGrab) && (isOnTop||isOnBottom)) {
+        if(canLedgeGrab) player.x=player.x+player.w<px ? px-player.w+1 : px+p.w-1;
         const landingSpeed=Math.abs(player.vy); player.y=world.gravityDirection>0 ? surfaceY-player.h : py+p.h; player.vy=0; player.grounded=true; player.coyote=FEATURES.coyoteJump?.10:0; player.airDashAvailable=abilities.airDash; player.doubleJumpAvailable=abilities.doubleJump; player.safetyNetAvailable=true; world.lastGround={x:player.x,y:player.y+player.h+20};
         if (FEATURES.landingDust && wasAirborne && landingSpeed>210) for(let i=0;i<8;i++)world.particles.push({x:player.x+player.w/2,y:surfaceY,vx:(Math.random()-.5)*140,vy:-Math.random()*90,life:.35,color:'#d8f6ff'});
         if(FEATURES.perfectLanding && wasAirborne && landingSpeed>520){world.combo++;world.comboTimer=1.6;showToast('ピース「パーフェクト着地！」');}

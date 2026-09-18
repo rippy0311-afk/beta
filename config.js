@@ -153,6 +153,8 @@ const FEATURES = Object.freeze({
   checkpointMomentumBoost: true,
   // アイデア実装バッチ 015：修復済みの建造物が上向きの風路になる。
   repairUpdraft: true,
+  // アイデア実装バッチ 016：足場の端に少し届いた場合の縁つかみ救済。
+  ledgeGrab: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -230,6 +232,7 @@ const MECHANIC_NUMBERS = Object.freeze({
   checkpointMomentumMultiplier: 1.15,
   repairUpdraftRadius: 105,
   repairUpdraftAcceleration: 1050,
+  ledgeGrabWidth: 15,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({
