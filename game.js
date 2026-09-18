@@ -646,7 +646,7 @@
       const airDashDuration=mechanic('airDashDuration');
       // Air Dash は移動速度を上書きせず、一人分の追加移動量を現在の慣性へ加える。
       // これにより走行中に遅くならず、「向いている方向へ加速する」能力になる。
-      player.airDashAvailable=false; player.airDash=airDashDuration; player.vx=player.facing*(Math.max(Math.abs(player.vx),tuning.playerSpeed)+distance/airDashDuration); player.vy=-35; world.stats.dashes++;
+      player.airDashAvailable=false; player.airDash=airDashDuration; player.airDashLanding=mechanic('airDashLandingWindow'); player.vx=player.facing*(Math.max(Math.abs(player.vx),tuning.playerSpeed)+distance/airDashDuration); player.vy=-35; world.stats.dashes++;
       if(FEATURES.airDashRing) world.repairWaves.push({x:player.x+player.w/2,y:player.y+player.h/2,life:.38,color:'#ffe45a',max:64});
       if(FEATURES.dashAfterimages) for(let i=0;i<5;i++)world.afterimages.push({x:player.x-player.facing*i*14,y:player.y+i*2,life:.30-i*.035,color:'#fff09a'});
       if(FEATURES.dashPlatforms) addTemporaryPlatform(player.x-30,player.y+player.h+18,112,20,mechanic('dashPlatformLife'),'dash');
@@ -675,6 +675,7 @@
         if(canLedgeGrab) player.x=player.x+player.w<px ? px-player.w+1 : px+p.w-1;
         const landingSpeed=Math.abs(player.vy); player.y=world.gravityDirection>0 ? surfaceY-player.h : py+p.h; player.vy=0; player.grounded=true; player.coyote=FEATURES.coyoteJump?.10:0; player.airDashAvailable=abilities.airDash; player.doubleJumpAvailable=abilities.doubleJump; player.safetyNetAvailable=true; world.lastGround={x:player.x,y:player.y+player.h+20};
         if (FEATURES.landingDust && wasAirborne && landingSpeed>210) for(let i=0;i<8;i++)world.particles.push({x:player.x+player.w/2,y:surfaceY,vx:(Math.random()-.5)*140,vy:-Math.random()*90,life:.35,color:'#d8f6ff'});
+        if(player.airDashLanding>0){const centerX=player.x+player.w/2,centerY=surfaceY;if(FEATURES.airDashLandingShockwave){for(const enemy of enemies)if(enemy.alive&&Math.hypot(enemy.x+enemy.w/2-centerX,enemy.y+enemy.h/2-centerY)<mechanic('airDashLandingRadius')){enemy.stun=Math.max(enemy.stun||0,mechanic('airDashLandingStun'));enemy.dir=Math.sign(enemy.x-centerX)||1;}world.repairWaves.push({x:centerX,y:centerY,life:.38,color:'#ffe78c',max:70});}if(FEATURES.airDashLandingOrbPull)for(const shard of shards)if(!shard.taken&&Math.hypot(shard.x-centerX,shard.y-centerY)<mechanic('airDashLandingOrbRadius')){shard.x+=(centerX-shard.x)*.28;shard.y+=(centerY-shard.y)*.28;}player.airDashLanding=0;}
         if(FEATURES.perfectLanding && wasAirborne && landingSpeed>520){world.combo++;world.comboTimer=1.6;showToast('ピース「パーフェクト着地！」');}
         if(FEATURES.groundPound && world.groundPound>0){for(const enemy of enemies)if(enemy.alive&&Math.abs(enemy.x-player.x)<150&&Math.abs(enemy.y-player.y)<100){enemy.stun=1.5;enemy.dir*=-1;}if(FEATURES.groundPoundBounce){player.vy=-mechanic('groundPoundBounceVelocity');player.grounded=false;showToast('ピース「足場を跳ね返した！」');}world.groundPound=0;}
       }
@@ -722,6 +723,7 @@
     world.orbChainTimer=Math.max(0,world.orbChainTimer-dt); if(!world.orbChainTimer)world.orbChain=0;
     player.resonanceBoost=Math.max(0,(player.resonanceBoost||0)-dt);
     player.checkpointMomentum=Math.max(0,(player.checkpointMomentum||0)-dt);
+    player.airDashLanding=Math.max(0,(player.airDashLanding||0)-dt);
     for(const wave of world.bellWaves) for(const enemy of enemies)if(enemy.alive&&Math.hypot(enemy.x-player.x,enemy.y-player.y)<mechanic('bellWaveRadius')){enemy.dir*=-1;}
     world.bellWaves=world.bellWaves.filter(wave=>(wave.life-=dt)>0);
     const guide=currentGuide(); const guidePlatform=guide && platforms[Math.max(1,Math.floor(platforms.length*.45))];

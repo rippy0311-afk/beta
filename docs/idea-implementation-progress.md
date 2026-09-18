@@ -20,5 +20,6 @@ The source list contains 2,000 broad concepts. This file records only ideas that
 | 014 | New: checkpoint momentum boost | Crossing a checkpoint while already moving fast gives a brief speed carry, rewarding a clean continuous route. | `checkpointMomentumBoost` | Implemented |
 | 015 | New: repair updraft | Holding W in the air around a repaired foundation catches a short updraft, turning restoration sites into vertical route anchors. | `repairUpdraft` | Implemented |
 | 016 | New: ledge grab | A near-miss at the top corner of a platform is snapped into a landing, making precise air routes feel fairer. | `ledgeGrab` | Implemented |
+| 017 | New: Air Dash landing shockwave, Air Dash landing orb pull | Landing shortly after an Air Dash stuns nearby enemies and can pull nearby orbs toward the landing point. | `airDashLandingShockwave`, `airDashLandingOrbPull` | Implemented |
 
-Progress: 34 / 1,000 target ideas implemented or concretely tracked.
+Progress: 36 / 1,000 target ideas implemented or concretely tracked.

@@ -155,6 +155,9 @@ const FEATURES = Object.freeze({
   repairUpdraft: true,
   // アイデア実装バッチ 016：足場の端に少し届いた場合の縁つかみ救済。
   ledgeGrab: true,
+  // アイデア実装バッチ 017：Air Dash後の着地を小さな衝撃波に変える。
+  airDashLandingShockwave: true,
+  airDashLandingOrbPull: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -233,6 +236,10 @@ const MECHANIC_NUMBERS = Object.freeze({
   repairUpdraftRadius: 105,
   repairUpdraftAcceleration: 1050,
   ledgeGrabWidth: 15,
+  airDashLandingWindow: 0.65,
+  airDashLandingRadius: 145,
+  airDashLandingOrbRadius: 220,
+  airDashLandingStun: 0.85,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({
