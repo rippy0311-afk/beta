@@ -626,6 +626,7 @@
     // 空中攻撃だけは、開始時の慣性と重力に従って放物線を描く。
     // 地上攻撃中は通常どおり移動入力を受け付ける。
     const wasAirborne=!player.grounded;
+    const wasGrounded=player.grounded;
     const airAttacking = player.attack > 0 && !player.grounded;
     const airDashing = player.airDash > 0;
     const groundDashing = player.groundDash > 0;
@@ -706,6 +707,9 @@
         if(FEATURES.groundPound && world.groundPound>0){for(const enemy of enemies)if(enemy.alive&&Math.abs(enemy.x-player.x)<150&&Math.abs(enemy.y-player.y)<100){enemy.stun=1.5;enemy.dir*=-1;}if(FEATURES.groundPoundBounce){player.vy=-mechanic('groundPoundBounceVelocity');player.grounded=false;showToast('ピース「足場を跳ね返した！」');}world.groundPound=0;}
       }
     }
+    // Shift Dashの勢いで端を走り抜けた時だけ、跳躍キーを使わない低いボルトを発生させる。
+    // 通常ジャンプは上向き速度になるため、誤って発動しない。
+    if(FEATURES.edgeDashVault && wasGrounded && !player.grounded && groundDashing && player.vy>0){player.vy=-mechanic('edgeDashVaultVelocity');player.airDashAvailable=abilities.airDash;world.repairWaves.push({x:player.x+player.w/2,y:player.y+player.h,life:.30,color:'#8cf6ff',max:56});if(FEATURES.particles)for(let i=0;i<12;i++)world.particles.push({x:player.x+player.w/2,y:player.y+player.h,vx:-player.facing*(35+Math.random()*120),vy:-50-Math.random()*120,life:.4,color:'#9cf8ff'});showToast('ピース「端からボルト！ Air Dashも戻った！」');}
     // 未回収オーブがある限り、ゲートは実体のある壁として行く手を止める。TODO消去中だけは短時間すり抜けられる。
     if (world.todoTimer<=0 && world.completed < shards.length && player.x + player.w > goalGate.x && player.x < goalGate.x + goalGate.w && player.y + player.h > goalGate.y - goalGate.h && player.y < goalGate.y) {
       player.x = goalGate.x - player.w; player.vx = 0;

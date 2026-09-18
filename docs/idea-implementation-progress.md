@@ -26,5 +26,6 @@ The source list contains 2,000 broad concepts. This file records only ideas that
 | 020 | New: checkpoint scaffold charge, checkpoint guard seal | Each new checkpoint provides one free C-key scaffold when Ren has no carried orb, plus one protective seal that blocks the next enemy hit. | `checkpointScaffoldCharge`, `checkpointGuardSeal` | Implemented |
 | 021 | New: data-defined wind lanes | Stage Builder-ready lane data gives selected Chapter 1 courses visible, airborne tailwinds without baking the behavior into their terrain. | `stageWindLanes`, `stageWindLaneMarkers` | Implemented |
 | 022 | New: enemy bounce | Falling squarely onto an enemy turns it into a short stunned springboard and restores Air Dash for an aerial recovery route. | `enemyBounce` | Implemented |
+| 023 | New: edge Dash vault | A ground Dash that runs naturally beyond a platform edge becomes a low, fast recovery vault without pressing jump. | `edgeDashVault` | Implemented |
 
-Progress: 42 / 1,000 target ideas implemented or concretely tracked.
+Progress: 43 / 1,000 target ideas implemented or concretely tracked.
