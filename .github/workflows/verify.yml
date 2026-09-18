@@ -1,0 +1,22 @@
+name: Verify Beta
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  feature-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check game syntax
+        run: node --check game.js
+      - name: Audit feature switches
+        run: node tools/audit-feature-flags.js
+      - name: Confirm 1,000-idea catalog
+        run: test "$(grep -Ec '^\| [0-9]{4} \|' docs/idea-catalog-1000.md)" -eq 1000
