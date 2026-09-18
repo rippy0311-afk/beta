@@ -168,6 +168,8 @@ const FEATURES = Object.freeze({
   // アイデア実装バッチ 021：ステージデータで定義する風の航路。
   stageWindLanes: true,
   stageWindLaneMarkers: true,
+  // アイデア実装バッチ 022：敵を避けるだけでなく、上から踏む空中の踏み台にする。
+  enemyBounce: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -254,6 +256,8 @@ const MECHANIC_NUMBERS = Object.freeze({
   checkpointGuardDuration: 1.25,
   checkpointGuardGrace: 2,
   stageWindLaneMultiplier: 1,
+  enemyBounceVelocity: 735,
+  enemyBounceStun: 1.1,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({
