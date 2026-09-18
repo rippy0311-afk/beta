@@ -149,6 +149,8 @@ const FEATURES = Object.freeze({
   // アイデア実装バッチ 013：空中で敵を越えるほど移動能力がつながる。
   airStrikeDashRefill: true,
   purificationJumpRefill: true,
+  // アイデア実装バッチ 014：走り抜けたチェックポイントが短い加速をくれる。
+  checkpointMomentumBoost: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -221,6 +223,9 @@ const MECHANIC_NUMBERS = Object.freeze({
   orbStartleRadius: 150,
   startleDuration: 0.72,
   groundPoundBounceVelocity: 790,
+  checkpointMomentumThreshold: 250,
+  checkpointMomentumDuration: 1.15,
+  checkpointMomentumMultiplier: 1.15,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({

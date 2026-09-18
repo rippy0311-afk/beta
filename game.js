@@ -615,7 +615,9 @@
       player.vx=dir*tuning.playerSpeed; player.vy=vertical*tuning.playerSpeed; player.grounded=false;
       if(dir)player.facing=dir;
     } else if (!airAttacking && !airDashing && !groundDashing) {
-      const movementSpeed=tuning.playerSpeed*(FEATURES.orbResonanceSprint && player.resonanceBoost>0 ? mechanic('orbResonanceSpeedMultiplier') : 1);
+      const resonanceMultiplier=FEATURES.orbResonanceSprint && player.resonanceBoost>0 ? mechanic('orbResonanceSpeedMultiplier') : 1;
+      const checkpointMultiplier=FEATURES.checkpointMomentumBoost && player.checkpointMomentum>0 ? mechanic('checkpointMomentumMultiplier') : 1;
+      const movementSpeed=tuning.playerSpeed*Math.max(resonanceMultiplier,checkpointMultiplier);
       player.vx = dir * movementSpeed;
       if (dir) player.facing = dir;
       // 5コマを見分けられるよう、歩行のコマ進行はダッシュよりゆっくりにする。
@@ -715,13 +717,14 @@
     world.guideEchoes=world.guideEchoes.filter(echo=>(echo.life-=dt)>0);
     world.orbChainTimer=Math.max(0,world.orbChainTimer-dt); if(!world.orbChainTimer)world.orbChain=0;
     player.resonanceBoost=Math.max(0,(player.resonanceBoost||0)-dt);
+    player.checkpointMomentum=Math.max(0,(player.checkpointMomentum||0)-dt);
     for(const wave of world.bellWaves) for(const enemy of enemies)if(enemy.alive&&Math.hypot(enemy.x-player.x,enemy.y-player.y)<mechanic('bellWaveRadius')){enemy.dir*=-1;}
     world.bellWaves=world.bellWaves.filter(wave=>(wave.life-=dt)>0);
     const guide=currentGuide(); const guidePlatform=guide && platforms[Math.max(1,Math.floor(platforms.length*.45))];
     if (guide && guidePlatform && !world.guideSeen && Math.abs(player.x-guidePlatform.x)<120) { world.guideSeen=true; showDialogue(`${guide.name}「${guide.ability}。私たちはピースと同じ、未完成の力から生まれた案内人だよ。」`); }
     for (let i=world.checkpointIndex+1;i<checkpoints.length;i++) {
       const point=checkpoints[i];
-      if (player.x >= point.x) { world.checkpointIndex=i; point.active=true; world.stats.checkpoints++; saveCheckpoint(); showToast('ピース「チェックポイント更新！」'); updateHud(); }
+      if (player.x >= point.x) { const running=Math.abs(player.vx)>=mechanic('checkpointMomentumThreshold'); world.checkpointIndex=i; point.active=true; world.stats.checkpoints++; if(FEATURES.checkpointMomentumBoost && running){player.checkpointMomentum=mechanic('checkpointMomentumDuration');showToast('ピース「風をつないだ！ 少し加速する。」');}else showToast('ピース「チェックポイント更新！」'); saveCheckpoint(); updateHud(); }
     }
     if (world.completed === shards.length && rect(player,{x:goalGate.x+36,y:goalGate.y-96,w:56,h:96})) beginGateExit();
     const finalBoundary=world.boundaryPlatforms.at(-1);

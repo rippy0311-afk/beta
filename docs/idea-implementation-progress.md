@@ -17,5 +17,6 @@ The source list contains 2,000 broad concepts. This file records only ideas that
 | 011 | New: dash scare, orb startle | Ground dash and a fresh orb pickup briefly send nearby enemies away, offering nonlethal route control. | `dashScaresEnemies`, `orbStartlesEnemies` | Implemented |
 | 012 | New: ground-pound bounce | An F-key ground pound rebounds from a platform, turning a downward commitment into a high recovery jump. | `groundPoundBounce` | Implemented |
 | 013 | New: air-strike dash refill, purification jump refill | An aerial strike restores Air Dash; a mid-air purification restores the double jump when unlocked. | `airStrikeDashRefill`, `purificationJumpRefill` | Implemented |
+| 014 | New: checkpoint momentum boost | Crossing a checkpoint while already moving fast gives a brief speed carry, rewarding a clean continuous route. | `checkpointMomentumBoost` | Implemented |
 
-Progress: 31 / 1,000 target ideas implemented or concretely tracked.
+Progress: 32 / 1,000 target ideas implemented or concretely tracked.
