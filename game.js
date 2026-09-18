@@ -516,6 +516,7 @@
     if(FEATURES.hitStop) world.hitStop=.055;
     if(FEATURES.particles) for(let i=0;i<18;i++) world.particles.push({x:enemy.x+28,y:enemy.y+25,vx:(Math.random()-.5)*260,vy:-40-Math.random()*190,life:.65,color:'#b9ffda'});
     leavePurificationGuide(enemy.x+28,enemy.y+25); leaveEnemyMemoryStep(enemy);
+    if(FEATURES.purificationJumpRefill && !player.grounded && abilities.doubleJump){player.doubleJumpAvailable=true;showToast('ピース「浄化の風で二段ジャンプが戻った！」');}
     leaveEnemyMemoryStep(enemy);
     return true;
   }
@@ -585,6 +586,7 @@
       if(FEATURES.enemyKnockback){enemy.x+=player.facing*46;enemy.dir=player.facing;}
       enemy.alive = false; world.stats.enemies++; if(FEATURES.enemyColorRecovery) world.colorRecovery=Math.min(1,world.colorRecovery+.09); addComplete(8); if(FEATURES.hitStop)world.hitStop=.055;
       leavePurificationGuide(enemy.x+28,enemy.y+25); leaveEnemyMemoryStep(enemy);
+      if(FEATURES.airStrikeDashRefill && !player.grounded && abilities.airDash){player.airDashAvailable=true;showToast('ピース「空中撃破でAir Dashが戻った！」');}
       if (FEATURES.comboMeter) { world.combo++; world.comboTimer=2.6; }
       if (FEATURES.particles) for (let i=0;i<22;i++) world.particles.push({x:enemy.x+28,y:enemy.y+25,vx:(Math.random()-.5)*330,vy:(Math.random()-.7)*310,life:.65,color:'#f04dff'});
     }

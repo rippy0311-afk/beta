@@ -146,6 +146,9 @@ const FEATURES = Object.freeze({
   orbStartlesEnemies: true,
   // アイデア実装バッチ 012：急降下を足場からの反発移動へ変える。
   groundPoundBounce: true,
+  // アイデア実装バッチ 013：空中で敵を越えるほど移動能力がつながる。
+  airStrikeDashRefill: true,
+  purificationJumpRefill: true,
 });
 
 const GAME_CONFIG = Object.freeze({
