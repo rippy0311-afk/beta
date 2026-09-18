@@ -158,6 +158,8 @@ const FEATURES = Object.freeze({
   // アイデア実装バッチ 017：Air Dash後の着地を小さな衝撃波に変える。
   airDashLandingShockwave: true,
   airDashLandingOrbPull: true,
+  // アイデア実装バッチ 018：未修復の基礎もHUDで見失わない。
+  repairCompass: true,
 });
 
 const GAME_CONFIG = Object.freeze({
