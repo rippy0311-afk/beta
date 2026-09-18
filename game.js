@@ -668,7 +668,7 @@
         const landingSpeed=Math.abs(player.vy); player.y=world.gravityDirection>0 ? surfaceY-player.h : py+p.h; player.vy=0; player.grounded=true; player.coyote=FEATURES.coyoteJump?.10:0; player.airDashAvailable=abilities.airDash; player.doubleJumpAvailable=abilities.doubleJump; player.safetyNetAvailable=true; world.lastGround={x:player.x,y:player.y+player.h+20};
         if (FEATURES.landingDust && wasAirborne && landingSpeed>210) for(let i=0;i<8;i++)world.particles.push({x:player.x+player.w/2,y:surfaceY,vx:(Math.random()-.5)*140,vy:-Math.random()*90,life:.35,color:'#d8f6ff'});
         if(FEATURES.perfectLanding && wasAirborne && landingSpeed>520){world.combo++;world.comboTimer=1.6;showToast('ピース「パーフェクト着地！」');}
-        if(FEATURES.groundPound && world.groundPound>0){for(const enemy of enemies)if(enemy.alive&&Math.abs(enemy.x-player.x)<150&&Math.abs(enemy.y-player.y)<100){enemy.stun=1.5;enemy.dir*=-1;}world.groundPound=0;}
+        if(FEATURES.groundPound && world.groundPound>0){for(const enemy of enemies)if(enemy.alive&&Math.abs(enemy.x-player.x)<150&&Math.abs(enemy.y-player.y)<100){enemy.stun=1.5;enemy.dir*=-1;}if(FEATURES.groundPoundBounce){player.vy=-mechanic('groundPoundBounceVelocity');player.grounded=false;showToast('ピース「足場を跳ね返した！」');}world.groundPound=0;}
       }
     }
     // 未回収オーブがある限り、ゲートは実体のある壁として行く手を止める。TODO消去中だけは短時間すり抜けられる。

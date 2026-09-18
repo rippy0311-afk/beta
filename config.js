@@ -144,6 +144,8 @@ const FEATURES = Object.freeze({
   // アイデア実装バッチ 011：スピードと収集で敵の巡回を乱す。
   dashScaresEnemies: true,
   orbStartlesEnemies: true,
+  // アイデア実装バッチ 012：急降下を足場からの反発移動へ変える。
+  groundPoundBounce: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -215,6 +217,7 @@ const MECHANIC_NUMBERS = Object.freeze({
   dashScareRadius: 205,
   orbStartleRadius: 150,
   startleDuration: 0.72,
+  groundPoundBounceVelocity: 790,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({
