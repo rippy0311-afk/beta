@@ -14,5 +14,6 @@ The source list contains 2,000 broad concepts. This file records only ideas that
 | 008 | 2 | Pressing C spends one held orb and converts its short arc into a temporary construction platform in front of Ren. | `orbBuildPlatform` | Implemented |
 | 009 | New: orb safety net | On a deep fall, one held orb is consumed to create a single emergency platform before Ren respawns. | `orbSafetyNet` | Implemented |
 | 010 | New: memory sense, repair fireflies, patrol ghost, checkpoint ribbon, cloud bloom | Carried orbs sense nearby memory fragments; repaired foundations gain fireflies; standing still reveals enemy patrol lines; HUD can point to the next checkpoint; restored colour brings small clouds into bloom. | `orbMemorySense`, `repairAmbientFireflies`, `enemyRouteGhosts`, `checkpointMapRibbon`, `completionCloudBloom` | Implemented |
+| 011 | New: dash scare, orb startle | Ground dash and a fresh orb pickup briefly send nearby enemies away, offering nonlethal route control. | `dashScaresEnemies`, `orbStartlesEnemies` | Implemented |
 
-Progress: 26 / 1,000 target ideas implemented or concretely tracked.
+Progress: 28 / 1,000 target ideas implemented or concretely tracked.

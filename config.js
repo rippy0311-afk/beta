@@ -141,6 +141,9 @@ const FEATURES = Object.freeze({
   enemyRouteGhosts: true,
   checkpointMapRibbon: true,
   completionCloudBloom: true,
+  // アイデア実装バッチ 011：スピードと収集で敵の巡回を乱す。
+  dashScaresEnemies: true,
+  orbStartlesEnemies: true,
 });
 
 const GAME_CONFIG = Object.freeze({
@@ -209,6 +212,9 @@ const MECHANIC_NUMBERS = Object.freeze({
   orbSafetyNetLife: 2.7,
   orbSafetyNetHeight: 650,
   memorySenseDistance: 760,
+  dashScareRadius: 205,
+  orbStartleRadius: 150,
+  startleDuration: 0.72,
 });
 
 const STAGE_NUMERIC_OVERRIDES = Object.freeze({

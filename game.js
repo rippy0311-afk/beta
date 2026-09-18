@@ -506,6 +506,9 @@
     if(!FEATURES.enemyMemoryStep) return;
     addTemporaryPlatform(enemy.x-8,enemy.y+enemy.h+18,72,16,mechanic('enemyMemoryStepLife'),'echo-step');
   }
+  function startleEnemies(x,y,radius) {
+    for(const enemy of enemies) if(enemy.alive && Math.hypot(enemy.x+enemy.w/2-x,enemy.y+enemy.h/2-y)<radius){enemy.dir=Math.sign(enemy.x-x)||1;enemy.stun=Math.max(enemy.stun||0,mechanic('startleDuration'));}
+  }
   function purgeEnemy(enemy) {
     if (!enemy || !enemy.alive) return false;
     enemy.alive=false; enemy.purified=true; enemy.purifiedAt=world.time;
@@ -627,6 +630,7 @@
       keys.delete(bindings.dash); keys.delete('dash');
       if(FEATURES.dashAfterimages) for(let i=0;i<4;i++)world.afterimages.push({x:player.x-player.facing*i*18,y:player.y,life:.34-i*.045,color:'#65e7ff'});
       if (FEATURES.particles) for(let i=0;i<10;i++) world.particles.push({x:player.x+player.w/2-player.facing*18,y:player.y+player.h-7,vx:-player.facing*(70+Math.random()*150),vy:-Math.random()*80,life:.28,color:'#b8f9ff'});
+      if(FEATURES.dashScaresEnemies) startleEnemies(player.x+player.w/2,player.y+player.h/2,mechanic('dashScareRadius'));
     }
     if (FEATURES.jumpBuffer && input('jump')) player.jumpBuffer=.13;
     const canJump=player.grounded || (FEATURES.coyoteJump && player.coyote>0);
@@ -697,6 +701,8 @@
       }
       if (rect(player,{x:shard.x-20,y:shard.y-20,w:40,h:48})) collect(shard);
     }
+    if(FEATURES.orbStartlesEnemies && world.completed>(world.lastOrbStartleCount||0)) startleEnemies(player.x+player.w/2,player.y+player.h/2,mechanic('orbStartleRadius'));
+    world.lastOrbStartleCount=world.completed;
     if(FEATURES.footstepMemory && player.grounded){const cell=Math.round((player.x+player.w/2)/mechanic('footstepCellSize'));if(cell!==player.lastFootstepCell){const revisited=world.footsteps.includes(cell);world.footsteps.push(cell);world.footsteps=world.footsteps.slice(-mechanic('footstepMemoryWindow'));player.lastFootstepCell=cell;if(revisited)addTemporaryPlatform(player.x+player.facing*82,player.y+player.h+26,mechanic('footstepPlatformWidth'),20,mechanic('footstepPlatformLife'),'memory');}}
     if(FEATURES.blueprintWalk) for(const point of repairPoints) if(!point.repaired && Math.abs(player.x-point.x)<85 && player.groundDash>0 && (point.blueprintUntil||0)<world.time){point.blueprintUntil=world.time+mechanic('blueprintLife');addTemporaryPlatform(point.x-92,point.y+18,184,20,mechanic('blueprintLife'),'blueprint');}
     world.history.push({x:player.x,y:player.y,vx:player.vx}); if(world.history.length>150)world.history.shift();
